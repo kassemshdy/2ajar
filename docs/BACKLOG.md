@@ -88,8 +88,25 @@ publishes → visitor finds it → submits lead with consent → broker sees lea
 ### B-026 ✅ Contracts generation
 AC: `pnpm contracts:gen` writes TS types from API OpenAPI; web imports types from `@2ajar/contracts`; CI drift check.
 
+## M1.5 — Launch
+
+### B-027 ✅ Test coverage gates
+AC: API ≥ 90% line+branch coverage, web unit tests ≥ 85% on `lib/` and client components, enforced in CI.
+
+### B-028 ✅ Telegram monitoring
+AC: messages for new accounts, listings created/published, leads (masked phone, no message), CSV imports; disabled
+without env vars; failures never break requests; untrusted text escaped.
+
+### B-029 ✅ Broker CSV bulk import
+AC: template download; dry-run preview with per-row errors; import creates drafts; location by slug/EN/AR name;
+≤ 200 rows / 1 MB; authz + rate limit; EN/AR UI.
+
+### B-030 🟡 Deploy to 2ajar.halyoon.com
+AC: Railway project with Postgres, bucket, api, web; health checks green; custom domain verified with TLS;
+demo mode labeled; go-live switch documented.
+
 ## M2 — Seeker polish
-- B-030 ⬜ Favorites (table, API, UI heart). AC: auth required; idempotent add/remove; only public listings.
+- B-031a ⬜ Favorites (table, API, UI heart). AC: auth required; idempotent add/remove; only public listings.
 - B-031 ⬜ Email verification & password reset (no paid provider until approved; SMTP via env).
 - B-032 ⬜ SEO: metadata, OpenGraph per listing, sitemap.xml of public listings, hreflang ar/en.
 - B-033 ⬜ Presigned direct uploads + worker image processing (thumbnails).

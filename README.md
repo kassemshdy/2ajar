@@ -28,7 +28,7 @@ cd apps/api
 cp .env.example .env            # DEMO_MODE=true shows synthetic listings locally
 uv sync
 uv run alembic upgrade head
-uv run python -m app.seed       # Lebanese locations + 30 listings flagged is_demo
+uv run python -m app.seed --demo   # Lebanese locations + 30 listings flagged is_demo
 uv run uvicorn app.main:app --reload --port 8000
 
 # Web (another terminal, from repo root)

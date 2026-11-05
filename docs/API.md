@@ -15,6 +15,10 @@ into `packages/contracts/src/schema.d.ts` (`pnpm contracts:gen`).
 - **Money**: `price_usd` in responses is an integer number of whole USD; stored as cents internally.
 - **IDs**: UUID strings. **Timestamps**: ISO-8601 UTC.
 
+## Media
+
+`GET /media/{key}` serves listing photos from storage (local disk or private S3 bucket) with immutable caching.
+
 ## Health
 
 | Method | Path | Auth | Description |
@@ -77,6 +81,8 @@ The publisher's WhatsApp number is **not** included; it is only exposed through 
 | POST | `/listings/{id}/confirm` | Re-confirm availability (extends `expires_at`). |
 | POST | `/listings/{id}/media` | multipart `file`; JPEG/PNG/WebP, ≤ 8 MB, ≤ 20 per listing. |
 | DELETE | `/listings/{id}/media/{media_id}` | |
+| GET | `/listings/import/template` | CSV template (header + example row). |
+| POST | `/listings/import?dry_run=true\|false` | multipart `file` (CSV, UTF-8 or cp1256, ≤ 1 MB, ≤ 200 rows). Rows become drafts. Returns `{dry_run,total,valid,created,rows:[{row,ok,listing_id,title,errors}]}`. |
 | GET | `/me/listings` | Own listings; agency admins get all org listings. |
 | GET | `/me/leads` | Leads for listings the user may manage. Filter `listing_id`. |
 

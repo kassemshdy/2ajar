@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 const PHOTO = path.join(__dirname, "..", "fixtures", "photo.jpg");
 
-test("broker lists a property, visitor contacts them, broker sees the lead", async ({ page, browser }, info) => {
+test("broker lists a property, visitor contacts them, broker sees the lead @mutating", async ({ page, browser }, info) => {
   const stamp = `${Date.now()}-${info.project.name}`;
   const email = `e2e-broker-${stamp}@example.com`;
   const title = `E2E apartment ${stamp}`;

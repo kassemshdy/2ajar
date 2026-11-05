@@ -42,8 +42,14 @@ jobs:
         run: uv run mypy app
       - name: Migrations up / down / up
         run: uv run alembic upgrade head && uv run alembic downgrade base && uv run alembic upgrade head
-      - name: Tests
-        run: uv run pytest -q
+      - name: Tests with coverage (gate 90%)
+        run: uv run pytest -q --cov --cov-report=term --cov-report=xml --cov-fail-under=90
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-coverage
+          path: apps/api/coverage.xml
+          if-no-files-found: ignore
       - name: Worker lint
         working-directory: apps/worker
         run: uv run --project ../api ruff check . && uv run --project ../api ruff format --check .
@@ -68,6 +74,14 @@ jobs:
           git diff --exit-code packages/contracts
       - run: pnpm --filter @2ajar/web lint
       - run: pnpm -r typecheck
+      - name: Unit tests with coverage (gate 85%)
+        run: pnpm --filter @2ajar/web test:coverage
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-coverage
+          path: apps/web/coverage
+          if-no-files-found: ignore
       - run: pnpm --filter @2ajar/web build
 
   e2e:
@@ -101,7 +115,7 @@ jobs:
         run: |
           uv sync --frozen
           uv run alembic upgrade head
-          uv run python -m app.seed
+          uv run python -m app.seed --demo
           nohup uv run uvicorn app.main:app --port 8000 > ../../api.log 2>&1 &
       - name: Build and start web
         env:

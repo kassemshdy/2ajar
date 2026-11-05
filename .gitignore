@@ -24,3 +24,6 @@ playwright-report/
 blob-report/
 # os
 .DS_Store
+coverage/
+coverage.xml
+.coverage
