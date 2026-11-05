@@ -1,7 +1,7 @@
 """In-process sliding-window rate limiter (single replica only, see ADR-007)."""
 
 import time
-from collections import defaultdict, deque
+from collections import OrderedDict, deque
 from collections.abc import Awaitable, Callable
 
 from fastapi import Request
@@ -11,12 +11,43 @@ from app.core.errors import RateLimited
 
 
 class SlidingWindowLimiter:
-    def __init__(self) -> None:
-        self._hits: dict[str, deque[float]] = defaultdict(deque)
+    """Sliding-window counter keyed by ``scope:client``.
+
+    Memory is bounded: keys whose window has fully elapsed are swept periodically, and the number of tracked
+    keys is capped (oldest-touched keys are dropped first). Dropping a key can only make the limiter more
+    lenient for that client, never block a legitimate one.
+    """
+
+    def __init__(
+        self,
+        *,
+        max_keys: int = 100_000,
+        sweep_every: int = 1_000,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        self._hits: OrderedDict[str, deque[float]] = OrderedDict()
+        self._windows: dict[str, float] = {}
+        self._max_keys = max_keys
+        self._sweep_every = sweep_every
+        self._calls = 0
+        self._clock = clock
+
+    def __len__(self) -> int:
+        return len(self._hits)
 
     def hit(self, key: str, limit: int, window_s: float) -> bool:
-        now = time.monotonic()
-        q = self._hits[key]
+        now = self._clock()
+        self._calls += 1
+        if self._calls % self._sweep_every == 0:
+            self._sweep(now)
+        q = self._hits.get(key)
+        if q is None:
+            q = self._hits[key] = deque()
+            while len(self._hits) > self._max_keys:
+                evicted, _ = self._hits.popitem(last=False)
+                self._windows.pop(evicted, None)
+        self._hits.move_to_end(key)
+        self._windows[key] = window_s
         while q and q[0] <= now - window_s:
             q.popleft()
         if len(q) >= limit:
@@ -24,8 +55,16 @@ class SlidingWindowLimiter:
         q.append(now)
         return True
 
+    def _sweep(self, now: float) -> None:
+        stale = [k for k, q in self._hits.items() if not q or q[-1] <= now - self._windows.get(k, 0.0)]
+        for k in stale:
+            del self._hits[k]
+            self._windows.pop(k, None)
+
     def reset(self) -> None:
         self._hits.clear()
+        self._windows.clear()
+        self._calls = 0
 
 
 limiter = SlidingWindowLimiter()
