@@ -5,7 +5,9 @@
     "dockerfilePath": "infra/docker/api.Dockerfile"
   },
   "deploy": {
-    "preDeployCommand": ["alembic upgrade head"],
+    "preDeployCommand": [
+      "sh -c 'alembic upgrade head && python -m app.seed ${SEED_DEMO:+--demo}'"
+    ],
     "healthcheckPath": "/readyz",
     "healthcheckTimeout": 60,
     "restartPolicyType": "ON_FAILURE",

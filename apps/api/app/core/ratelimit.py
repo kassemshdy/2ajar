@@ -32,7 +32,19 @@ limiter = SlidingWindowLimiter()
 
 
 def client_ip(request: Request) -> str:
-    return request.client.host if request.client else "unknown"
+    """Client IP, honouring X-Forwarded-For only for the configured number of trusted proxy hops.
+
+    Each trusted proxy appends the address it received the request from, so the real client is the
+    N-th entry from the right. Entries further left are client-controlled and ignored.
+    """
+    peer = request.client.host if request.client else "unknown"
+    hops = get_settings().forwarded_trusted_hops
+    if hops <= 0:
+        return peer
+    chain = [p.strip() for p in request.headers.get("x-forwarded-for", "").split(",") if p.strip()]
+    if not chain:
+        return peer
+    return chain[-hops] if len(chain) >= hops else chain[0]
 
 
 def rate_limit(scope: str, limit: int, window_s: float) -> Callable[[Request], Awaitable[None]]:

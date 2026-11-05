@@ -4,8 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse, Response
 from sqlalchemy import text
 
 from app.api.v1 import auth, listings, misc
@@ -13,6 +12,7 @@ from app.core.config import get_settings
 from app.core.errors import install_error_handlers
 from app.core.logging import RequestContextMiddleware, configure_logging
 from app.db.session import get_engine
+from app.storage import MediaNotFound, get_storage
 
 log = logging.getLogger("ajar")
 
@@ -74,9 +74,18 @@ def create_app() -> FastAPI:
     v1.include_router(listings.router)
     app.include_router(v1)
 
-    if settings.storage_backend == "local":
-        settings.media_root.mkdir(parents=True, exist_ok=True)
-        app.mount(settings.media_url_prefix, StaticFiles(directory=settings.media_root), name="media")
+    @app.get("/media/{key:path}", include_in_schema=False)
+    async def media(key: str) -> Response:
+        try:
+            data, content_type = await get_storage().get(key)
+        except (MediaNotFound, ValueError):
+            return JSONResponse({"error": {"code": "not_found", "message": "Not found"}}, status_code=404)
+        return Response(
+            content=data,
+            media_type=content_type,
+            headers={"Cache-Control": "public, max-age=31536000, immutable"},
+        )
+
     return app
 
 

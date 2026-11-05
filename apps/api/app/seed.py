@@ -1,11 +1,11 @@
 """Seed Lebanese locations and clearly-marked DEMO listings.
 
-Usage:  python -m app.seed            (locations + demo data)
-        python -m app.seed --locations-only
+Usage:  python -m app.seed               (locations only: safe everywhere)
+        python -m app.seed --demo        (+ demo listings; refused when ENV=production)
+        python -m app.seed --purge-demo  (delete all demo data)
 
 Locations are real public geography. Every person, agency, listing and phone number created here is
-synthetic and flagged `is_demo = true`. Demo seeding refuses to run when ENV=production;
-`--locations-only` (reference data) is allowed everywhere.
+synthetic and flagged `is_demo = true`.
 """
 
 import argparse
@@ -19,7 +19,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from PIL import Image, ImageDraw
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
@@ -330,21 +330,57 @@ async def seed_demo(session: AsyncSession, count: int = 30) -> int:
     return count
 
 
-async def main(locations_only: bool) -> None:
+async def purge_demo(session: AsyncSession) -> int:
+    """Delete all demo listings, properties, accounts and organizations (and their stored photos)."""
+    storage = get_storage()
+    keys = list(
+        (
+            await session.scalars(
+                select(ListingMedia.storage_key).join(Listing).where(Listing.is_demo.is_(True))
+            )
+        ).all()
+    )
+    listing_ids = list((await session.scalars(select(Listing.id).where(Listing.is_demo.is_(True)))).all())
+    await session.execute(delete(Listing).where(Listing.is_demo.is_(True)))
+    await session.execute(delete(Property).where(Property.is_demo.is_(True)))
+    demo_users = select(User.id).where(User.is_demo.is_(True))
+    await session.execute(delete(OrganizationMember).where(OrganizationMember.user_id.in_(demo_users)))
+    await session.execute(delete(User).where(User.is_demo.is_(True)))
+    await session.execute(delete(Organization).where(Organization.is_demo.is_(True)))
+    await session.commit()
+    for key in keys:
+        await storage.delete(key)
+    return len(listing_ids)
+
+
+async def main(demo: bool = False, purge: bool = False) -> int:
     s = get_settings()
-    if s.env == "production" and not locations_only:
-        print("Refusing to seed demo data: ENV=production (use --locations-only)", file=sys.stderr)
-        sys.exit(2)
+    if demo and s.env == "production":
+        print("Refusing to seed demo data: ENV=production", file=sys.stderr)
+        return 2
     async with get_sessionmaker()() as session:
+        if purge:
+            n = await purge_demo(session)
+            print(f"demo listings deleted: {n}")
+            return 0
         n_loc = await seed_locations(session)
         print(f"locations created: {n_loc}")
-        if not locations_only:
+        if demo:
             n = await seed_demo(session)
             print(f"demo listings created: {n} (is_demo=true; visible only when DEMO_MODE=true)")
+    return 0
+
+
+def cli(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Seed reference data (locations) and optional demo listings."
+    )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--demo", action="store_true", help="also create clearly-marked demo listings")
+    group.add_argument("--purge-demo", action="store_true", help="delete all demo data")
+    args = parser.parse_args(argv)
+    return asyncio.run(main(demo=args.demo, purge=args.purge_demo))
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--locations-only", action="store_true")
-    args = parser.parse_args()
-    asyncio.run(main(args.locations_only))
+    sys.exit(cli())

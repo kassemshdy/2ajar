@@ -29,17 +29,20 @@ class Settings(BaseSettings):
 
     storage_backend: Literal["local", "s3"] = "local"
     media_root: Path = Path("var/media")
-    media_url_prefix: str = "/media"
     s3_endpoint_url: str | None = None
     s3_bucket: str | None = None
     s3_access_key_id: str | None = None
     s3_secret_access_key: str | None = None
     s3_region: str = "auto"
-    s3_public_base_url: str | None = None
 
     max_upload_bytes: int = 8 * 1024 * 1024
     max_media_per_listing: int = 20
     rate_limit_enabled: bool = True
+    # Number of reverse proxies in front of the API that append to X-Forwarded-For (Railway edge + Next = 2).
+    forwarded_trusted_hops: int = 0
+
+    telegram_bot_token: str | None = None
+    telegram_chat_id: str | None = None
     log_level: str = "INFO"
 
     @field_validator("database_url")
