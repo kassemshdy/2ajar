@@ -18,13 +18,14 @@ dependencies = [
   "pillow>=11.0",
   "python-multipart>=0.0.18",
   "boto3>=1.35",
+  "httpx>=0.28",
 ]
 
 [dependency-groups]
 dev = [
   "pytest>=8.3",
   "pytest-asyncio>=0.24",
-  "httpx>=0.28",
+  "pytest-cov>=6.0",
   "ruff>=0.8",
   "mypy>=1.13",
   "boto3-stubs[s3]>=1.35",
@@ -65,3 +66,13 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"
 testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["app"]
+concurrency = ["greenlet", "thread"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = ["if __name__ == .__main__.:", "if TYPE_CHECKING:", "\\.\\.\\.$"]

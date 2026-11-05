@@ -76,6 +76,24 @@ def settings() -> Any:
     return get_settings()
 
 
+class RecordingNotifier:
+    def __init__(self) -> None:
+        self.messages: list[str] = []
+
+    async def send(self, text: str) -> None:
+        self.messages.append(text)
+
+
+@pytest.fixture(autouse=True)
+def notifications() -> Iterator[RecordingNotifier]:
+    from app.notify import set_notifier
+
+    recorder = RecordingNotifier()
+    set_notifier(recorder)
+    yield recorder
+    set_notifier(None)
+
+
 class Actor:
     """An HTTP client with its own cookie jar that behaves like a browser (sends CSRF header)."""
 
