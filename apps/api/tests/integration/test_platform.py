@@ -35,6 +35,12 @@ async def test_config_and_unknown_routes(anon: Any) -> None:
     assert r.headers["x-request-id"] == "abc-123"
 
 
+async def test_health_endpoints_accept_head(anon: Any) -> None:
+    for path in ("/healthz", "/readyz"):
+        r = await anon.client.head(path)
+        assert r.status_code == 200, path
+
+
 async def test_readyz_reports_db_failure(anon: Any, monkeypatch: Any) -> None:
     import app.main as main
 

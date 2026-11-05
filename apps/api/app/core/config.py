@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     max_upload_bytes: int = 8 * 1024 * 1024
     max_media_per_listing: int = 20
     rate_limit_enabled: bool = True
-    # Number of reverse proxies in front of the API that append to X-Forwarded-For (Railway edge + Next = 2).
+    # Proxies that append to X-Forwarded-For before the API (Railway edge = 1; +1 behind Cloudflare proxy).
     forwarded_trusted_hops: int = 0
 
     telegram_bot_token: str | None = None

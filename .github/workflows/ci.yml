@@ -25,7 +25,7 @@ jobs:
           POSTGRES_DB: ajar_test
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U ajar" --health-interval 5s --health-timeout 5s --health-retries 10
+          --health-cmd "pg_isready -U ajar -d ajar_test" --health-interval 5s --health-timeout 5s --health-retries 10
     defaults:
       run:
         working-directory: apps/api
@@ -96,7 +96,7 @@ jobs:
           POSTGRES_DB: ajar_test
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U ajar" --health-interval 5s --health-timeout 5s --health-retries 10
+          --health-cmd "pg_isready -U ajar -d ajar_test" --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -123,7 +123,7 @@ jobs:
         run: |
           pnpm --filter @2ajar/web build
           nohup pnpm --filter @2ajar/web start > web.log 2>&1 &
-          npx --yes wait-on@8.0.1 -t 60000 http://localhost:8000/readyz http://localhost:3000/api/health
+          npx --yes wait-on@8.0.1 -t 90000 http-get://localhost:8000/readyz http-get://localhost:3000/api/health
       - name: Install Playwright browser
         working-directory: tests/e2e
         run: pnpm exec playwright install --with-deps chromium

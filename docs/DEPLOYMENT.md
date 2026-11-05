@@ -38,7 +38,7 @@ Railway services directly; Railway's config-as-code files are deprecated.
 | `DEMO_MODE` / `SEED_DEMO` | `true` / `true` at launch (see go-live switch) |
 | `STORAGE_BACKEND` | `s3` |
 | `S3_ENDPOINT_URL`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION` | references to the `ajar-media` bucket credentials |
-| `FORWARDED_TRUSTED_HOPS` | `2` (Railway edge + Next). Use `3` if Cloudflare proxying (orange cloud) is enabled |
+| `FORWARDED_TRUSTED_HOPS` | `1`: Railway's edge appends the client IP and Next forwards the header unchanged (verified: spoofed `X-Forwarded-For` values are ignored). Use `2` if Cloudflare proxying (orange cloud) is enabled |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | set by the owner (see below). Unset = notifications off |
 | `PORT` | `8000` |
 
@@ -68,7 +68,7 @@ shows:
 
 1. `CNAME 2ajar → <value from Railway>`, **DNS only (grey cloud)** until Railway shows the certificate as issued.
 2. The `TXT _railway-verify.2ajar` record, if Railway asks for one.
-3. Optional later: orange cloud with SSL/TLS mode **Full (strict)**, then set `FORWARDED_TRUSTED_HOPS=3`.
+3. Optional later: orange cloud with SSL/TLS mode **Full (strict)**, then set `FORWARDED_TRUSTED_HOPS=2`.
 
 ## Telegram monitoring
 
