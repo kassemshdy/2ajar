@@ -1,16 +1,27 @@
 """Operational notifications (Telegram) for newly created items.
 
-Notifications are best-effort: they run as background tasks after the request's transaction committed,
-time out quickly, and never raise. Publisher-supplied text is HTML-escaped; lead phone numbers are masked.
+Structure
+---------
+* ``Notifier`` (Strategy): *how* a message is delivered — ``TelegramNotifier`` or ``NullNotifier``.
+* ``msg_*`` functions: *what* the message says, as pure functions (easy to unit test).
+* ``register_notification_subscribers``: *when* — subscribes to domain events on the ``EventBus``
+  (Observer), so business services never import this module.
+
+Notifications are best-effort: they run after the response was sent, time out quickly and never raise.
+Publisher-supplied text is HTML-escaped; lead phone numbers are masked and lead messages are never sent.
 """
 
 import html
 import logging
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 import httpx
 
 from app.core.config import get_settings
+from app.domain import events as ev
+
+if TYPE_CHECKING:
+    from app.core.events import EventBus
 
 log = logging.getLogger("ajar.notify")
 
@@ -124,3 +135,47 @@ def msg_lead(*, listing_title: str | None, source: str, phone_e164: str) -> str:
 
 def msg_import(*, created: int, actor_name: str) -> str:
     return f"📦 CSV import{env_tag()}: {created} draft listing(s) created by <b>{esc(actor_name)}</b>"
+
+
+# ---------- event subscribers ----------
+
+
+def _listing_message(verb: str, snap: ev.ListingSnapshot) -> str:
+    return msg_listing(
+        verb,
+        listing_id=snap.listing_id,
+        title=snap.title,
+        price_usd=snap.price_usd,
+        period=snap.price_period,
+        area=snap.area_name,
+        demo=snap.is_demo,
+    )
+
+
+def render(event: ev.DomainEvent) -> str | None:
+    """Map a domain event to its Telegram text (None = not announced)."""
+    match event:
+        case ev.UserRegistered(full_name=name, role=role, organization_name=org):
+            return msg_user_registered(name, role, org)
+        case ev.ListingCreated(listing=snap):
+            return _listing_message("created", snap)
+        case ev.ListingPublished(listing=snap):
+            return _listing_message("published", snap)
+        case ev.ListingSubmittedForReview(listing=snap):
+            return _listing_message("submitted for review", snap)
+        case ev.LeadReceived(listing_title=title, source=source, phone_e164=phone):
+            return msg_lead(listing_title=title, source=source, phone_e164=phone)
+        case ev.ListingsImported(created=created, actor_name=actor):
+            return msg_import(created=created, actor_name=actor)
+    return None
+
+
+async def announce(event: ev.DomainEvent) -> None:
+    text = render(event)
+    if text is not None:
+        await notify(text)
+
+
+def register_notification_subscribers(bus: "EventBus") -> None:
+    # One handler on the base class receives every domain event; ``render`` decides what is announced.
+    bus.subscribe(ev.DomainEvent, announce)
