@@ -13,12 +13,15 @@ Browser ─▶ Cloudflare DNS ─▶ Railway edge ─▶ web (Next.js) ──pri
 
 | Service | Source | Build | Health check |
 |---|---|---|---|
-| `web` | `kassemshdy/2ajar` (`main`) | `infra/docker/web.Dockerfile`, config `apps/web/railway.json` | `/api/health` |
-| `api` | `kassemshdy/2ajar` (`main`) | `infra/docker/api.Dockerfile`, config `apps/api/railway.json` | `/readyz` |
+| `web` | `kassemshdy/2ajar` (`main`) | `infra/docker/web.Dockerfile` | `/api/health` |
+| `api` | `kassemshdy/2ajar` (`main`) | `infra/docker/api.Dockerfile`, pre-deploy below, private endpoint `api.railway.internal` (binds `::`) | `/readyz` |
 | `Postgres` | Railway PostgreSQL | managed | managed |
 | `ajar-media` | Railway bucket (S3-compatible, private) | – | – |
 
 The worker (`apps/worker`, freshness report) is not deployed yet. It only logs counts today; M4 adds reminders.
+
+Service settings (Dockerfile path, health check, pre-deploy command, restart policy, watch paths) are set on the
+Railway services directly; Railway's config-as-code files are deprecated.
 
 ## Environment variables
 
