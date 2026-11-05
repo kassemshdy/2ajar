@@ -14,4 +14,4 @@ RUN uv sync --frozen --no-dev \
 USER app
 ENV PATH="/app/.venv/bin:$PATH" ENV=production PORT=8000
 EXPOSE 8000
-CMD ["sh", "-c", "uvicorn app.main:app --host :: --port ${PORT} --proxy-headers --forwarded-allow-ips='*'"]
+CMD ["python", "-m", "app.serve"]
