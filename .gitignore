@@ -1,0 +1,26 @@
+# env
+.env
+.env.*
+!.env.example
+# python
+__pycache__/
+*.pyc
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+apps/api/var/
+# node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+# playwright
+test-results/
+playwright-report/
+blob-report/
+# os
+.DS_Store
