@@ -28,23 +28,63 @@
   freshness-expiry job; scheduled through Railway cron.
 - **packages/contracts** — TypeScript types generated from the API's OpenAPI schema; the web app imports them.
 
-## 2. API layering
+## 2. API layering and design patterns
 
 ```
-app/
-  api/v1/        routers (HTTP only: parse, call service, map errors)
-  schemas/       Pydantic request/response models
-  services/      business logic, transactions
-  authz/         policy functions: can_edit_listing(user, listing) ...
-  models/        SQLAlchemy ORM models
-  db/            engine/session, base
-  core/          config, security (hashing, JWT), logging, rate limiting, errors
-  storage/       StorageBackend protocol: LocalStorage, S3Storage
-  ai/            (M3) LLMProvider protocol, tools, orchestrator
+HTTP route (thin adapter)            app/api/v1/*.py
+   │  depends on (FastAPI DI)         app/api/providers.py   ← composition root
+   ▼
+Service (use cases + authorization)  app/services/*.py      ListingService, ListingMediaService, ContactService,
+   │                                                         LeadService, ListingImporter, AccountService, TokenService
+   ├─▶ Repository (all SQL)           app/repositories/*.py  ListingRepository, LeadRepository, LocationDirectory
+   ├─▶ Policy objects                 app/authz, services/publishing.py
+   ├─▶ Presenter (ORM → DTO)          app/services/presenters.py
+   └─▶ EventRecorder ─▶ EventBus ─▶ subscribers (Telegram)   app/core/events.py, app/notify.py
 ```
 
-Routers never touch the ORM directly for writes; services do. Every mutating service call receives the
-authenticated principal and calls an `authz` policy before reading/writing a resource.
+| Pattern | Where | Why |
+|---|---|---|
+| **Service layer** | `app/services` | One place for business rules and authorization; HTTP, CSV import and future AI tools reuse it. |
+| **Repository** | `app/repositories` | Services state intent; query shapes (and their indexes) live in one module. |
+| **Specification** | `ListingSpecs` (SQL) + `app/authz/policies.py` (in-memory); `PublishRule` classes | Composable rules, each unit-tested. SQL and in-memory variants are tested against the same scenarios. |
+| **Strategy** | `PublishPolicy` (auto vs moderation), `StorageBackend` (local vs S3), `Notifier` (Telegram vs null) | Swap behaviour by configuration without editing callers (Open/Closed). |
+| **Observer / domain events** | `EventBus`, `app/domain/events.py` | Services record facts after commit; subscribers react asynchronously. Adding a reaction never touches business code. |
+| **Factory** | `publish_policy_for`, `get_storage`, `get_event_bus`, `app/api/providers.py` | Construction and configuration live outside business logic. |
+| **Presenter / DTO assembler** | `ListingPresenter` | Wire format is separate from the domain; the public/private field split is enforced in one place. |
+| **Builder** | `WhatsAppLinkBuilder` | Encapsulates the localized deep-link format. |
+| **Cache-aside, single-flight** | `TTLCache.get_or_load`, `LocationDirectory` | Reference data is served from memory, and concurrent misses share one load. |
+| **Dependency Injection** | constructor injection + FastAPI `Depends` | Collaborators (settings, clock, storage, event recorder, policy) are injected, so tests replace them without monkeypatching internals. |
+
+SOLID in practice:
+- **SRP**: accounts vs tokens, listings vs media vs contact are separate classes.
+- **OCP**: new publish rules, storage backends and event subscribers are added without editing existing classes.
+- **LSP**: any `StorageBackend` or `Notifier` implementation is a drop-in replacement.
+- **ISP**: services depend on the narrow `EventRecorder.record`, not the whole bus.
+- **DIP**: services depend on protocols (`StorageBackend`, `EventRecorder`, `Cache`); concrete classes are chosen in `providers.py`.
+
+We deliberately do **not** add a generic unit-of-work, CQRS or abstract base repositories. With one database
+and a handful of aggregates they would add indirection without benefit (the "avoid overengineering" rule).
+
+## 2a. Caching and memory
+
+| What | Where | TTL | Invalidation |
+|---|---|---|---|
+| Location tree (immutable snapshot) | `LocationDirectory`, in-process `TTLCache` (max 1 entry) | 10 min | `LocationDirectory.invalidate()` after seeding; process restart on deploy |
+| `/locations`, `/config` responses | HTTP `Cache-Control: public, max-age=300, stale-while-revalidate=3600` | 5 min | deploy |
+| Public search responses | `Cache-Control: public, max-age=15, stale-while-revalidate=60` | 15 s | time |
+| Locations/config on the web server | Next data cache (`revalidate: 300`) | 5 min | time / deploy |
+| Listing photos | `/media/*` with `immutable` | 1 year | keys are content-unique, never overwritten |
+
+Never cached: anything authenticated, authorization decisions, leads, dashboards.
+
+Memory bounds:
+- `TTLCache` is LRU-capped.
+- The rate limiter sweeps expired keys and caps tracked clients (100k).
+- Uploads read at most `limit + 1` bytes and CSV imports at most 1 MB.
+- Snapshots shared across requests are frozen dataclasses, never session-bound ORM objects.
+
+All of this is per process, which is fine for a single API replica. Running several replicas requires a shared
+store for rate limits (ADR-007), while caches can stay per process (ADR-014).
 
 ## 3. Authentication
 

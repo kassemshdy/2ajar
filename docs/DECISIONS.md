@@ -53,6 +53,26 @@ the UI falls back to filter search.
 ## ADR-013 Sync vs async SQLAlchemy
 Async SQLAlchemy with psycopg 3. Tests run against a real Postgres (no SQLite) to match production behaviour.
 
+## ADR-014 In-process caching for reference data only
+Locations and public config are read on most requests and change only on deploy. They are cached in-process
+(`TTLCache`, LRU-bounded, single-flight) and via HTTP `Cache-Control`. No Redis yet: one replica, and a cache miss
+costs one tiny query. User-specific and authorization data is never cached. *Consequence*: with N replicas each
+holds its own copy, which is acceptable for read-only reference data.
+
+## ADR-015 Domain events on an in-process bus
+Services record immutable events after commit; subscribers (Telegram now; analytics or e-mail later) react in
+background tasks. *Consequence*: delivery is best-effort and not durable. If a notification must never be lost,
+introduce an outbox table drained by the worker.
+
+## ADR-016 Service layer with repositories and constructor injection
+Routes are adapters, services hold use cases and authorization, repositories own SQL, and dependencies are wired
+in `app/api/providers.py`. *Consequence*: slightly more files, but HTTP, CSV import and the future AI tools share
+one implementation of every rule, and services are testable without HTTP.
+
+## ADR-017 Index changes are evidence-based
+Every index must be justified by an `EXPLAIN ANALYZE` on realistic volume (see DATABASE.md). Superseded indexes
+are dropped, because each extra index slows writes and wastes cache.
+
 ---
 
 ## Assumptions

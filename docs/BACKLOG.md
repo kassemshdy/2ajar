@@ -105,6 +105,10 @@ AC: template download; dry-run preview with per-row errors; import creates draft
 AC: Railway project with Postgres, bucket, api, web; health checks green; custom domain verified with TLS;
 demo mode labeled; go-live switch documented.
 
+### B-031 ✅ Engineering hardening
+AC: service/repository layering with DI; publish policy strategy (auto/moderation); domain events + bus; bounded
+caches and rate limiter; measured, query-driven indexes (migration 0002); N+1 guard test; ≥ 95% API coverage.
+
 ## M2 — Seeker polish
 - B-031a ⬜ Favorites (table, API, UI heart). AC: auth required; idempotent add/remove; only public listings.
 - B-031 ⬜ Email verification & password reset (no paid provider until approved; SMTP via env).

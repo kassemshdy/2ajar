@@ -210,17 +210,36 @@ erDiagram
 | conversations, messages | M4 (optional; WhatsApp is primary) |
 | subscriptions, payments | M6 (pending monetization decision) |
 
-## Indexes (M1)
+## Index strategy (migration 0002, measured)
 
-- `users(email)` unique (stored lowercased)
-- `locations(parent_id)`, `locations(path text_pattern_ops)` for descendant `LIKE 'beirut/%'`
-- `properties(location_id)`, `properties(bedrooms)`
-- `listings(status, transaction_type, published_at desc)` — main public query
-- `listings(price_usd_cents)`, `listings(created_by_user_id)`, `listings(organization_id)`, `listings(expires_at)`
-- `listing_media(listing_id, position)`
-- `leads(listing_id, created_at)`, `leads(listing_id, phone_e164, created_at)` (dedupe lookup)
-- `listing_events(listing_id, event_type, created_at)`
-- `audit_logs(resource_type, resource_id)`
+Indexes follow measured query plans, not guesses. Method: 150k listings and 60k leads loaded into a scratch
+database, then `EXPLAIN ANALYZE` on the exact queries the repositories issue.
+
+| Query (repository method) | Index | Before | After |
+|---|---|---|---|
+| Public search, newest (`ListingRepository.search`) | partial `ix_listings_published_newest (transaction_type, published_at DESC) WHERE status='published'` | 0.7 ms (generic composite) | 0.7 ms, index only covers published rows |
+| Public search, price filter/sort | partial `ix_listings_published_price (transaction_type, price_usd_cents) WHERE status='published'` | 3.1 ms | 2.6 ms |
+| Dashboard "my listings" + lead counts (`manageable_with_lead_counts`) | `ix_listings_creator_updated (created_by_user_id, updated_at DESC)`, `ix_listings_org_updated`; lead count as a correlated subquery | **80 ms** (aggregated all leads + seq scan) | **2.1 ms** |
+| Lead inbox (`LeadRepository.inbox`) | `ix_leads_listing_last_contact (listing_id, last_contact_at DESC)`; ORDER BY without COALESCE | 20 ms (seq scan) | 3.3 ms for a 300-listing broker |
+
+Other indexes:
+- `users(email)` unique.
+- `locations(path text_pattern_ops)` for subtree `LIKE 'beirut/%'`.
+- `properties(location_id)`, `properties(bedrooms)`.
+- `leads(listing_id, phone_e164, created_at)` for dedupe.
+- `listing_events(listing_id, event_type, created_at)`.
+- `listing_media(listing_id, position)`.
+- `audit_logs(resource_type, resource_id)`.
+- `listings(expires_at)` for the freshness job.
+
+Removed as superseded: `ix_listings_public_search`, `ix_listings_price_usd_cents`,
+`ix_listings_created_by_user_id`, `ix_listings_organization_id` (each is a leading column of a new composite),
+and `ix_leads_listing_created`.
+
+Rules:
+- New indexes are created before old ones are dropped in the same migration.
+- `tests/integration/test_architecture.py` asserts the index definitions and that search issues a constant
+  number of queries regardless of result size (N+1 guard).
 
 ## Lead deduplication
 
