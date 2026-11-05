@@ -1,0 +1,80 @@
+# Decisions (ADRs) and open questions
+
+Format: context → decision → consequences. Status: Accepted unless noted.
+
+## ADR-001 Monorepo with pnpm workspaces + uv
+Web/contracts are a pnpm workspace; Python apps use uv with `pyproject.toml`. The worker depends on the API
+package (path dependency) to share models. *Consequence*: one repo, two toolchains; CI caches both.
+
+## ADR-002 Self-hosted auth (argon2id + JWT access + rotating refresh)
+No paid identity vendor. Cookies are httpOnly/SameSite=Lax with CSRF double-submit for mutations.
+*Consequence*: we own password reset / email verification (M2). Social login deferred.
+
+## ADR-003 Integer USD cents
+`price_usd_cents BIGINT`. API exposes whole dollars. LBP and "lollar" prices are not supported (open question Q5).
+
+## ADR-004 PostGIS deferred
+Railway's standard Postgres image may not ship PostGIS; the local dev cluster doesn't either. M1 uses a
+location hierarchy plus `lat/lng` numeric columns. Radius search ("within 2 km of AUB") is added later by enabling
+PostGIS (or an earthdistance/cube fallback) in a dedicated migration.
+
+## ADR-005 No vector database in MVP
+AI search = LLM intent extraction → deterministic SQL filters → deterministic ranking. Add `pgvector` only if the
+eval set shows recall gaps that structured fields can't close.
+
+## ADR-006 Listings separate from properties
+A property is the physical unit; a listing is an advertisement with its own lifecycle and moderation state.
+
+## ADR-007 In-process rate limiter
+Single API replica in MVP, so an in-memory sliding window is sufficient. Must be replaced by a shared store
+(Postgres table or Redis) before running > 1 replica. Tracked in BACKLOG (M6).
+
+## ADR-008 Uploads proxied through API in M1
+Simpler validation (Pillow sniffing, re-encode to WebP, EXIF strip) at the cost of API bandwidth. Presigned direct
+uploads + async processing in worker planned for M2.
+
+## ADR-009 Auto-publish in M1, moderation in M4
+Publishing goes straight to `published` after completeness validation. `pending_review` exists in the enum so
+M4 can switch the flow behind a setting (`MODERATION_REQUIRED=true`) without a schema change.
+
+## ADR-010 Private-resource authorization failures return 404
+Prevents listing/lead ID enumeration.
+
+## ADR-011 WhatsApp handoff via tracked endpoint
+Publisher numbers are not embedded in public listing payloads; the client calls `POST /listings/{id}/contact/whatsapp`
+to get the `wa.me` link. Deters bulk scraping and lets us measure contact intent. (Determined scrapers can still
+call the endpoint; it is rate-limited.)
+
+## ADR-012 LLM provider abstraction, Anthropic first
+`LLMProvider` protocol with an Anthropic adapter and a deterministic `FakeProvider`. Using a paid model API requires
+owner approval and an API key in env (`LLM_PROVIDER`, `ANTHROPIC_API_KEY`); without it, AI search is disabled and
+the UI falls back to filter search.
+
+## ADR-013 Sync vs async SQLAlchemy
+Async SQLAlchemy with psycopg 3. Tests run against a real Postgres (no SQLite) to match production behaviour.
+
+---
+
+## Assumptions
+
+- Fresh USD is the market's de-facto rental currency.
+- WhatsApp is the dominant contact channel; in-app chat is not needed for MVP.
+- Most Beirut brokers list 5–100 units; agencies have < 20 agents.
+- Phone numbers default to region `LB` when no country code is given.
+- Listing freshness window: 30 days (configurable `LISTING_TTL_DAYS`).
+- Demo locations use real Lebanese place names (public geography); all listings, people, and numbers are synthetic.
+
+## Open business decisions (owner input needed; none block M1)
+
+| # | Question | Default until decided |
+|---|---|---|
+| Q1 | Monetization model (subscription / per-lead / featured) | Free during beta |
+| Q2 | Broker verification requirements | `is_verified` flag set manually by admin |
+| Q3 | Free listing cap for individual owners | No cap (soft-limit later) |
+| Q4 | Must broker commission be disclosed? | Optional free-text in description |
+| Q5 | Non-USD pricing | USD only |
+| Q6 | When to launch sales | Supported, not marketed |
+| Q7 | Payment provider in Lebanon | Not integrated |
+| Q8 | Lead data retention | 12 months then anonymize (to implement M4) |
+| Q9 | Production domain & brand assets | `2ajar` working name |
+| Q10 | Object storage vendor (Railway bucket vs Cloudflare R2 vs AWS S3) | S3-compatible adapter; vendor chosen at deploy |
