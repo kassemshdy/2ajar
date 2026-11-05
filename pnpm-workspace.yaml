@@ -2,3 +2,9 @@ packages:
   - apps/web
   - packages/*
   - tests/e2e
+ignoredBuiltDependencies:
+  - "@parcel/watcher"
+  - "@swc/core"
+onlyBuiltDependencies:
+  - sharp
+  - unrs-resolver
