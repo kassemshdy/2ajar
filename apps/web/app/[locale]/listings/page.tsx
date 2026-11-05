@@ -1,10 +1,10 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import type { ListingPage, Location } from "@2ajar/contracts";
+import type { ListingPage } from "@2ajar/contracts";
 import { DemoBanner } from "@/components/demo-banner";
 import { ListingCard } from "@/components/listing-card";
 import { SearchFilters, type SearchState } from "@/components/search-filters";
 import { Card } from "@/components/ui/card";
-import { apiGet, getPublicConfig } from "@/lib/api-server";
+import { apiGet, getLocations, getPublicConfig } from "@/lib/api-server";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +44,7 @@ export default async function ListingsPage({
 
   const [config, locations, results] = await Promise.all([
     getPublicConfig(),
-    apiGet<Location[]>("/locations"),
+    getLocations(),
     apiGet<ListingPage>(`/listings?${query.toString()}`).catch(() => null),
   ]);
   const total = results?.total ?? 0;

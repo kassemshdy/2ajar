@@ -1,11 +1,11 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import type { ListingPage, Location } from "@2ajar/contracts";
+import type { ListingPage } from "@2ajar/contracts";
 import { DemoBanner } from "@/components/demo-banner";
 import { ListingCard } from "@/components/listing-card";
 import { SearchFilters } from "@/components/search-filters";
 import { Card } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
-import { apiGet, getPublicConfig } from "@/lib/api-server";
+import { apiGet, getLocations, getPublicConfig } from "@/lib/api-server";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const t = await getTranslations("home");
   const [config, locations, latest] = await Promise.all([
     getPublicConfig(),
-    apiGet<Location[]>("/locations"),
+    getLocations(),
     apiGet<ListingPage>("/listings?transaction_type=rent&page_size=6"),
   ]);
 
