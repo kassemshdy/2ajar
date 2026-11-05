@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #0f172a;
+  --color-card: #ffffff;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  --color-border: #e2e8f0;
+  --color-ring: #0f766e;
+  --color-primary: #0f766e; /* cedar teal */
+  --color-primary-foreground: #ffffff;
+  --color-destructive: #dc2626;
+  --color-whatsapp: #128c4a;
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, "Noto Sans Arabic", "Noto Sans", Tahoma, Arial,
+    sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+[dir="rtl"] body {
+  font-family: "Noto Sans Arabic", "Segoe UI", Tahoma, "Geeza Pro", Arial, sans-serif;
+}
