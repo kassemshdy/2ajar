@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, status
 
 from app.api.deps import (
     ACCESS_COOKIE,
@@ -12,6 +12,7 @@ from app.core.errors import Unauthorized
 from app.core.ratelimit import rate_limit
 from app.core.security import new_opaque_token
 from app.models import User
+from app.notify import msg_user_registered, notify
 from app.schemas.auth import LoginIn, MembershipOut, RegisterIn, UserOut
 from app.services import auth as auth_service
 
@@ -77,11 +78,16 @@ def clear_auth_cookies(response: Response) -> None:
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(rate_limit("register", 10, 3600))],
 )
-async def register(data: RegisterIn, request: Request, response: Response, session: SessionDep) -> UserOut:
+async def register(
+    data: RegisterIn, request: Request, response: Response, session: SessionDep, background: BackgroundTasks
+) -> UserOut:
     user = await auth_service.register_user(session, data, request)
     access, refresh = await auth_service.issue_tokens(session, user)
     set_auth_cookies(response, access, refresh)
-    return user_out(user)
+    out = user_out(user)
+    org = out.memberships[0].organization_name if out.memberships else None
+    background.add_task(notify, msg_user_registered(user.full_name, user.role.value, org))
+    return out
 
 
 @router.post("/login", response_model=UserOut, dependencies=[Depends(rate_limit("login", 10, 300))])
