@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageCircle, Phone, Plus } from "lucide-react";
+import { FileUp, MessageCircle, Phone, Plus } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 import type { LeadWithListing, ListingPrivate, User } from "@2ajar/contracts";
@@ -14,6 +14,7 @@ const STATUS_TONE = { published: "success", draft: "muted", paused: "warning" } 
 
 export function Dashboard() {
   const t = useTranslations("dashboard");
+  const tImport = useTranslations("import");
   const locale = useLocale();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -76,10 +77,16 @@ export function Dashboard() {
             {user.memberships[0] ? ` · ${user.memberships[0].organization_name}` : ""}
           </p>
         </div>
-        <Link href="/dashboard/listings/new" className={buttonVariants()} data-testid="new-listing">
-          <Plus className="size-4" aria-hidden />
-          {t("newListing")}
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/dashboard/import" className={buttonVariants({ variant: "outline" })} data-testid="import-csv">
+            <FileUp className="size-4" aria-hidden />
+            {tImport("importCsv")}
+          </Link>
+          <Link href="/dashboard/listings/new" className={buttonVariants()} data-testid="new-listing">
+            <Plus className="size-4" aria-hidden />
+            {t("newListing")}
+          </Link>
+        </div>
       </div>
       {error ? <Alert tone="error">{error}</Alert> : null}
 

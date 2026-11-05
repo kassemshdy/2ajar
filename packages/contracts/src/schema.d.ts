@@ -103,6 +103,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/listings/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Listings */
+        post: operations["import_listings_api_v1_listings_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/listings/import/template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Import Template */
+        get: operations["import_template_api_v1_listings_import_template_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/listings/{listing_id}": {
         parameters: {
             query?: never;
@@ -368,6 +402,11 @@ export interface components {
          * @enum {string}
          */
         Amenity: "generator_24_7" | "solar_power" | "elevator" | "parking" | "balcony" | "terrace" | "sea_view" | "mountain_view" | "air_conditioning" | "central_heating" | "water_tank" | "security" | "concierge" | "gym" | "pool" | "garden" | "storage" | "pets_allowed";
+        /** Body_import_listings_api_v1_listings_import_post */
+        Body_import_listings_api_v1_listings_import_post: {
+            /** File */
+            file: string;
+        };
         /** Body_upload_media_api_v1_listings__listing_id__media_post */
         Body_upload_media_api_v1_listings__listing_id__media_post: {
             /** File */
@@ -382,6 +421,32 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** ImportResultOut */
+        ImportResultOut: {
+            /** Created */
+            created: number;
+            /** Dry Run */
+            dry_run: boolean;
+            /** Rows */
+            rows: components["schemas"]["ImportRowOut"][];
+            /** Total */
+            total: number;
+            /** Valid */
+            valid: number;
+        };
+        /** ImportRowOut */
+        ImportRowOut: {
+            /** Errors */
+            errors: string[];
+            /** Listing Id */
+            listing_id: string | null;
+            /** Ok */
+            ok: boolean;
+            /** Row */
+            row: number;
+            /** Title */
+            title: string | null;
         };
         /** LeadCreate */
         LeadCreate: {
@@ -1021,6 +1086,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_listings_api_v1_listings_import_post: {
+        parameters: {
+            query?: {
+                dry_run?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_listings_api_v1_listings_import_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResultOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_template_api_v1_listings_import_template_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": string;
                 };
             };
         };

@@ -192,5 +192,22 @@
   },
   "footer": {
     "tagline": "2ajar — trusted property discovery in Lebanon."
+  },
+  "import": {
+    "importCsv": "Import CSV",
+    "title": "Import listings from a spreadsheet",
+    "intro": "Upload a CSV of your own listings. Each valid row becomes a draft; add photos and publish from your dashboard.",
+    "template": "Download template",
+    "file": "CSV file",
+    "preview": "Check file",
+    "import": "Import {count, plural, one {# listing} other {# listings}}",
+    "summary": "{valid} of {total} rows are valid",
+    "created": "{count, plural, one {# draft created} other {# drafts created}}",
+    "row": "Row",
+    "status": "Status",
+    "ok": "Ready",
+    "error": "Error",
+    "openDraft": "Add photos",
+    "none": "No valid rows to import."
   }
 }

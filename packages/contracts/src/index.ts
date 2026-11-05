@@ -25,3 +25,5 @@ export type ListingStatus = S["ListingStatus"];
 export interface ApiErrorBody {
   error: { code: string; message: string; details?: unknown };
 }
+export type ImportResult = S["ImportResultOut"];
+export type ImportRow = S["ImportRowOut"];
