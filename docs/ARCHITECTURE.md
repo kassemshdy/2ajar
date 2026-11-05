@@ -17,8 +17,11 @@
                                    LLM provider (M3, via LLMProvider abstraction)
 ```
 
-- **apps/web** — Next.js App Router. Server Components fetch public data from the API (SSR for SEO);
-  Client Components handle forms. Locale-prefixed routes `/en/...`, `/ar/...`; `<html dir>` follows locale.
+- **apps/web** — Next.js 15 App Router. Server Components fetch public data from the API (SSR for SEO);
+  Client Components handle forms and the authenticated dashboard. Locale-prefixed routes `/en/...`, `/ar/...`;
+  `<html dir>` follows locale. Next rewrites proxy `/api/v1/*` and `/media/*` to the API, so the browser only ever
+  talks to the web origin: auth cookies are first-party and no CORS is needed. UI primitives in
+  `components/ui` follow the shadcn/ui pattern (vendored, Tailwind v4 + cva) rather than the CLI generator.
 - **apps/api** — FastAPI, Pydantic v2, SQLAlchemy 2 (async, psycopg 3), Alembic. Single source of truth for
   business rules and authorization. Publishes OpenAPI consumed by `packages/contracts`.
 - **apps/worker** — Python process sharing `apps/api` models (installed as a package). M1: placeholder with
@@ -119,6 +122,6 @@ Sentry is optional and **not** enabled without approval (paid service tiers).
 ## 10. Internationalization
 
 `next-intl` message catalogs `messages/en.json`, `messages/ar.json`. Tailwind logical utilities
-(`ms-*`, `pe-*`, `start-*`, `text-start`) so components mirror automatically in RTL. Arabic font: Noto Sans Arabic
-via `next/font`. Listing content has `title_en/title_ar` and `description_en/description_ar`; the UI falls back
+(`ms-*`, `pe-*`, `start-*`, `text-start`) so components mirror automatically in RTL. Fonts: system stack with Noto Sans Arabic / Segoe UI / Tahoma fallbacks for Arabic
+(no build-time Google Fonts fetch; can move to self-hosted `next/font/local` later). Listing content has `title_en/title_ar` and `description_en/description_ar`; the UI falls back
 to the other language when one is missing.

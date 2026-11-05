@@ -32,6 +32,10 @@ into `packages/contracts/src/schema.d.ts` (`pnpm contracts:gen`).
 | POST | `/auth/logout` | user | Revokes refresh family, clears cookies. |
 | GET | `/me` | user | Current user + memberships. |
 
+## Meta
+
+| GET | `/config` | – | `{consent_text_version, demo_mode, max_upload_bytes, max_media_per_listing}` |
+
 ## Locations
 
 | GET | `/locations` | – | Flat list `{id, parent_id, level, slug, name_en, name_ar, path}` (cacheable) |
@@ -43,7 +47,7 @@ into `packages/contracts/src/schema.d.ts` (`pnpm contracts:gen`).
 | GET | `/listings` | Filters: `transaction_type`, `location` (slug, includes descendants), `price_min`, `price_max` (USD), `bedrooms_min`, `bathrooms_min`, `furnished`, `property_type`, `sort=newest\|price_asc\|price_desc`, pagination |
 | GET | `/listings/{id}` | Published listing detail; owners/admins also see non-published ones |
 | POST | `/listings/{id}/contact/whatsapp` | Logs `whatsapp_click`, returns `{url}` (`https://wa.me/<number>?text=...`). Rate-limited. |
-| POST | `/listings/{id}/leads` | `{name, phone, email?, message?, consent: true, consent_text_version}` → `201 Lead` (new) or `200 Lead` (deduplicated). `422` if consent ≠ true. Rate-limited. |
+| POST | `/listings/{id}/leads` | `{name, phone, email?, message?, consent: true, consent_text_version}` → `201 {id, deduplicated:false}` or `200 {id, deduplicated:true}`. `422` if consent is not the JSON boolean `true` or the consent text version is outdated. Rate-limited. |
 | POST | `/listings/{id}/view` | Logs a `view` event (fire-and-forget from client) |
 
 ### `ListingPublic`

@@ -29,9 +29,12 @@ async def freshness_report() -> dict[str, int]:
     async with get_sessionmaker()() as session:
         base = select(func.count()).select_from(Listing).where(Listing.status == ListingStatus.published)
         expired = await session.scalar(base.where(Listing.expires_at <= now)) or 0
-        soon = await session.scalar(
-            base.where(Listing.expires_at > now, Listing.expires_at <= now + timedelta(days=3))
-        ) or 0
+        soon = (
+            await session.scalar(
+                base.where(Listing.expires_at > now, Listing.expires_at <= now + timedelta(days=3))
+            )
+            or 0
+        )
     result = {"expired": expired, "expiring_within_3_days": soon}
     log.info("freshness report", extra={"extra_fields": result})
     return result

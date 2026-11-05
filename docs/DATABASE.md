@@ -147,8 +147,8 @@ erDiagram
     enum status "new|contacted|qualified|closed|spam"
     timestamptz consent_at
     text consent_text_version
-    text dedupe_key
     int duplicate_count
+    timestamptz last_contact_at
   }
   listing_events {
     uuid id PK
@@ -218,15 +218,16 @@ erDiagram
 - `listings(status, transaction_type, published_at desc)` — main public query
 - `listings(price_usd_cents)`, `listings(created_by_user_id)`, `listings(organization_id)`, `listings(expires_at)`
 - `listing_media(listing_id, position)`
-- `leads(listing_id, created_at desc)`, unique partial `leads(dedupe_key)`
+- `leads(listing_id, created_at)`, `leads(listing_id, phone_e164, created_at)` (dedupe lookup)
 - `listing_events(listing_id, event_type, created_at)`
 - `audit_logs(resource_type, resource_id)`
 
 ## Lead deduplication
 
-`dedupe_key = sha256(listing_id + phone_e164 + utc_date_bucket)` where the bucket is the 24-hour window
-starting at the first lead. Implementation: look up an existing lead for the same listing and phone in the last
-24h; if found, increment `duplicate_count`, append message, and return the existing lead (HTTP 200 instead of 201).
+Within a transaction the API takes `pg_advisory_xact_lock(hash('lead:' || listing_id || ':' || phone_e164))`,
+then looks for a lead for the same listing and normalized phone created in the last 24 hours. If found it increments
+`duplicate_count`, updates `last_contact_at`, appends the new message, and returns the existing lead (HTTP 200 instead
+of 201). The advisory lock makes concurrent duplicate submissions race-free without a unique constraint.
 
 ## Demo data
 

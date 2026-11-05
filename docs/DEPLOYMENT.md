@@ -10,7 +10,7 @@
 |---|---|---|---|
 | `web` | `apps/web` (Dockerfile `infra/docker/web.Dockerfile`) | `node server.js` (Next standalone) | `GET /api/health` |
 | `api` | `apps/api` (Dockerfile `infra/docker/api.Dockerfile`) | `uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers` | `GET /healthz` |
-| `worker` (optional) | `apps/worker` | Railway cron: `python -m worker.jobs expire_listings` hourly | exit code |
+| `worker` (optional) | `apps/worker` | Railway cron: `python -m worker.jobs freshness_report` daily (reminders in M4) | exit code |
 | `postgres` | Railway PostgreSQL plugin | – | managed |
 | Object storage | Railway bucket or external S3-compatible (decision Q10) | – | – |
 
@@ -37,8 +37,7 @@ refuse to start if `DEMO_MODE=true` and makes the seed script exit.
 | `DEMO_MODE` | api | `false` in production |
 | `LISTING_TTL_DAYS` | api, worker | default 30 |
 | `LLM_PROVIDER`, `ANTHROPIC_API_KEY`, `LLM_MODEL` | api | M3; unset = AI disabled |
-| `NEXT_PUBLIC_API_URL` | web | public API URL (browser) |
-| `API_INTERNAL_URL` | web | private network URL `http://api.railway.internal:$PORT` for SSR |
+| `API_INTERNAL_URL` | web | private network URL, e.g. `http://api.railway.internal:8000`. Needed at **build time** too (Next rewrites are compiled into the build; passed as Docker build arg) |
 
 No secrets are committed. `.env.example` files list variable names with dummy values only.
 
