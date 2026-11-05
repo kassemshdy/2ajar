@@ -7,35 +7,59 @@ from typing import Any
 
 from fastapi import Request
 from pydantic import ValidationError
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.authz.policies import Principal, can_create_listing
 from app.core.errors import Forbidden, PayloadTooLarge, ValidationFailed
-from app.models import Location
+from app.core.events import EventRecorder
+from app.domain.events import ListingsImported
+from app.repositories.locations import LocationDirectory
 from app.schemas.listing import ListingCreate
-from app.services.audit import audit
-from app.services.listings import _normalize_whatsapp, add_listing
+from app.services.audit import AuditTrail
+from app.services.listings import ListingService, normalize_whatsapp
 
 MAX_BYTES = 1024 * 1024
 MAX_ROWS = 200
 
 COLUMNS = [
-    "transaction_type", "property_type", "location", "price_usd", "price_period", "bedrooms", "bathrooms",
-    "area_sqm", "floor", "furnished", "amenities", "title_en", "title_ar", "description_en", "description_ar",
+    "transaction_type",
+    "property_type",
+    "location",
+    "price_usd",
+    "price_period",
+    "bedrooms",
+    "bathrooms",
+    "area_sqm",
+    "floor",
+    "furnished",
+    "amenities",
+    "title_en",
+    "title_ar",
+    "description_en",
+    "description_ar",
     "contact_whatsapp",
-]  # fmt: skip
+]
 REQUIRED = {"transaction_type", "property_type", "location", "price_usd"}
 INT_FIELDS = {"price_usd", "bedrooms", "bathrooms", "area_sqm", "floor"}
 
 TEMPLATE_EXAMPLE = {
-    "transaction_type": "rent", "property_type": "apartment", "location": "achrafieh", "price_usd": "1200",
-    "price_period": "monthly", "bedrooms": "2", "bathrooms": "2", "area_sqm": "140", "floor": "4",
-    "furnished": "furnished", "amenities": "generator_24_7;parking;elevator",
-    "title_en": "Bright 2-bedroom apartment in Achrafieh", "title_ar": "شقة مشرقة من غرفتي نوم في الأشرفية",
-    "description_en": "Close to Sassine square.", "description_ar": "قريبة من ساحة ساسين.",
+    "transaction_type": "rent",
+    "property_type": "apartment",
+    "location": "achrafieh",
+    "price_usd": "1200",
+    "price_period": "monthly",
+    "bedrooms": "2",
+    "bathrooms": "2",
+    "area_sqm": "140",
+    "floor": "4",
+    "furnished": "furnished",
+    "amenities": "generator_24_7;parking;elevator",
+    "title_en": "Bright 2-bedroom apartment in Achrafieh",
+    "title_ar": "شقة مشرقة من غرفتي نوم في الأشرفية",
+    "description_en": "Close to Sassine square.",
+    "description_ar": "قريبة من ساحة ساسين.",
     "contact_whatsapp": "+961 70 123 456",
-}  # fmt: skip
+}
 
 
 def template_csv() -> str:
@@ -64,97 +88,109 @@ def _decode(raw: bytes) -> str:
     raise ValidationFailed("CSV must be UTF-8 encoded")
 
 
-async def _location_index(session: AsyncSession) -> dict[str, Location]:
-    index: dict[str, Location] = {}
-    for loc in (await session.scalars(select(Location))).all():
-        for key in (loc.slug, loc.name_en.lower(), loc.name_ar):
-            index.setdefault(key.strip(), loc)
-    return index
+class ListingImporter:
+    """Validate a CSV of listings and stage them as drafts in one transaction.
 
+    The flow is a fixed pipeline (parse -> map rows -> validate -> persist), and every row is validated with
+    the same ``ListingCreate`` schema and ``ListingService.add_draft`` used by the single-listing endpoint,
+    so the importer can never accept data the regular form would reject.
+    """
 
-def _row_to_payload(row: dict[str, str], locations: dict[str, Location]) -> tuple[dict[str, Any], list[str]]:
-    errors: list[str] = []
-    values = {k: (row.get(k) or "").strip() for k in COLUMNS}
-    for col in sorted(REQUIRED):
-        if not values[col]:
-            errors.append(f"{col} is required")
-    payload: dict[str, Any] = {}
-    for key, value in values.items():
-        if not value or key == "location":
-            continue
-        if key in INT_FIELDS:
-            try:
-                payload[key] = int(value.replace(",", ""))
-            except ValueError:
-                errors.append(f"{key} must be a whole number")
-        elif key == "amenities":
-            payload[key] = [a.strip() for a in value.split(";") if a.strip()]
-        else:
-            payload[key] = value
-    if values["location"]:
-        loc = locations.get(values["location"]) or locations.get(values["location"].lower())
-        if loc is None:
-            errors.append(f"Unknown location '{values['location']}'")
-        else:
-            payload["location_id"] = loc.id
-    if "price_period" not in payload:
-        payload["price_period"] = "total" if values["transaction_type"] == "sale" else "monthly"
-    return payload, errors
+    def __init__(self, session: AsyncSession, *, listings: ListingService, events: EventRecorder) -> None:
+        self._session = session
+        self._listings = listings
+        self._locations: LocationDirectory = listings.locations
+        self._events = events
+        self._audit = AuditTrail(session)
 
+    async def run(
+        self, p: Principal, raw: bytes, *, dry_run: bool, actor_name: str, request: Request | None = None
+    ) -> list[RowResult]:
+        if not can_create_listing(p):
+            raise Forbidden("Only owners and brokers can import listings")
+        rows = self._parse(raw)
+        results: list[RowResult] = []
+        valid: list[tuple[RowResult, ListingCreate]] = []
+        for number, row in enumerate(rows, start=2):  # row 1 is the header
+            result, data = await self._validate_row(number, row)
+            results.append(result)
+            if data is not None:
+                valid.append((result, data))
 
-async def import_listings(
-    session: AsyncSession, p: Principal, raw: bytes, *, dry_run: bool, request: Request
-) -> list[RowResult]:
-    if not can_create_listing(p):
-        raise Forbidden("Only owners and brokers can import listings")
-    if len(raw) > MAX_BYTES:
-        raise PayloadTooLarge("CSV files must be at most 1 MB")
-    reader = csv.DictReader(io.StringIO(_decode(raw)))
-    header = [h.strip() for h in (reader.fieldnames or [])]
-    missing = REQUIRED - set(header)
-    if missing:
-        raise ValidationFailed(f"Missing columns: {', '.join(sorted(missing))}", details=sorted(missing))
-    reader.fieldnames = header
-    rows = list(reader)
-    if not rows:
-        raise ValidationFailed("The CSV file has no data rows")
-    if len(rows) > MAX_ROWS:
-        raise ValidationFailed(f"At most {MAX_ROWS} rows per import")
+        if dry_run or not valid:
+            return results
+        for result, data in valid:
+            listing = await self._listings.add_draft(p, data)
+            result.listing_id = str(listing.id)
+        self._audit.record(
+            p.user_id,
+            "listing.import",
+            "listing",
+            None,
+            request=request,
+            data={"created": len(valid), "rows": len(rows)},
+        )
+        await self._session.commit()
+        self._events.record(ListingsImported(created=len(valid), actor_name=actor_name))
+        return results
 
-    locations = await _location_index(session)
-    results: list[RowResult] = []
-    valid: list[tuple[RowResult, ListingCreate]] = []
-    for i, row in enumerate(rows, start=2):  # row 1 is the header
-        payload, errors = _row_to_payload(row, locations)
-        result = RowResult(row=i, ok=False, title=payload.get("title_en") or payload.get("title_ar"))
+    @staticmethod
+    def _parse(raw: bytes) -> list[dict[str, str]]:
+        if len(raw) > MAX_BYTES:
+            raise PayloadTooLarge("CSV files must be at most 1 MB")
+        reader = csv.DictReader(io.StringIO(_decode(raw)))
+        header = [h.strip() for h in (reader.fieldnames or [])]
+        missing = REQUIRED - set(header)
+        if missing:
+            raise ValidationFailed(f"Missing columns: {', '.join(sorted(missing))}", details=sorted(missing))
+        reader.fieldnames = header
+        rows = list(reader)
+        if not rows:
+            raise ValidationFailed("The CSV file has no data rows")
+        if len(rows) > MAX_ROWS:
+            raise ValidationFailed(f"At most {MAX_ROWS} rows per import")
+        return rows
+
+    async def _validate_row(self, number: int, row: dict[str, str]) -> tuple[RowResult, ListingCreate | None]:
+        payload, errors = await self._to_payload(row)
+        result = RowResult(row=number, ok=False, title=payload.get("title_en") or payload.get("title_ar"))
         data: ListingCreate | None = None
         if not errors:
             try:
                 data = ListingCreate.model_validate(payload)
-                _normalize_whatsapp(data.contact_whatsapp)
+                normalize_whatsapp(data.contact_whatsapp)
             except ValidationError as exc:
                 errors = [f"{'.'.join(str(x) for x in e['loc']) or 'row'}: {e['msg']}" for e in exc.errors()]
+                data = None
             except ValidationFailed as exc:
                 errors = [exc.message]
+                data = None
         result.errors = errors
         result.ok = not errors
-        results.append(result)
-        if data is not None and not errors:
-            valid.append((result, data))
+        return result, data
 
-    if dry_run or not valid:
-        return results
-    for result, data in valid:
-        listing = await add_listing(session, p, data)
-        result.listing_id = str(listing.id)
-    audit(
-        session,
-        actor_id=p.user_id,
-        action="listing.import",
-        resource_type="listing",
-        resource_id=None,
-        data={"created": len(valid), "rows": len(rows)},
-        request=request,
-    )
-    await session.commit()
-    return results
+    async def _to_payload(self, row: dict[str, str]) -> tuple[dict[str, Any], list[str]]:
+        errors: list[str] = []
+        values = {k: (row.get(k) or "").strip() for k in COLUMNS}
+        errors.extend(f"{col} is required" for col in sorted(REQUIRED) if not values[col])
+        payload: dict[str, Any] = {}
+        for key, value in values.items():
+            if not value or key == "location":
+                continue
+            if key in INT_FIELDS:
+                try:
+                    payload[key] = int(value.replace(",", ""))
+                except ValueError:
+                    errors.append(f"{key} must be a whole number")
+            elif key == "amenities":
+                payload[key] = [a.strip() for a in value.split(";") if a.strip()]
+            else:
+                payload[key] = value
+        if values["location"]:
+            location = await self._locations.resolve(values["location"])  # cached lookup by slug/EN/AR name
+            if location is None:
+                errors.append(f"Unknown location '{values['location']}'")
+            else:
+                payload["location_id"] = location.id
+        payload.setdefault("price_period", "total" if values["transaction_type"] == "sale" else "monthly")
+        return payload, errors

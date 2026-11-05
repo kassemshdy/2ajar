@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     demo_mode: bool = False
     listing_ttl_days: int = 30
     publish_requires_media: bool = True
+    # ADR-009: when true, complete listings go to pending_review instead of being published directly.
+    moderation_required: bool = False
     consent_text_version: str = "2026-11-v1"
 
     storage_backend: Literal["local", "s3"] = "local"

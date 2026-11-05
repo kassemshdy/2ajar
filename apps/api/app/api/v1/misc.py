@@ -1,47 +1,48 @@
+"""Reference data, public configuration and "my" dashboard endpoints."""
+
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Query
-from sqlalchemy import select
+from fastapi import APIRouter, Query, Response
 
-from app.api.deps import PrincipalDep, SessionDep
-from app.core.config import get_settings
-from app.models import Location
+from app.api.deps import PrincipalDep
+from app.api.providers import LeadServiceDep, ListingServiceDep, LocationDirectoryDep, SettingsDep
 from app.schemas.lead import LeadWithListing
 from app.schemas.listing import ListingPrivate, LocationOut
-from app.services import leads as lead_service
-from app.services import listings as svc
+from app.services.presenters import ListingPresenter
 
 router = APIRouter()
 
+# Reference data changes only on deploy; browsers and the web server may reuse it for a few minutes.
+_REFERENCE_CACHE = "public, max-age=300, stale-while-revalidate=3600"
+
 
 @router.get("/config", tags=["meta"])
-async def public_config() -> dict[str, object]:
-    s = get_settings()
+async def public_config(settings: SettingsDep, response: Response) -> dict[str, object]:
+    response.headers["Cache-Control"] = _REFERENCE_CACHE
     return {
-        "consent_text_version": s.consent_text_version,
-        "demo_mode": s.demo_mode,
-        "max_upload_bytes": s.max_upload_bytes,
-        "max_media_per_listing": s.max_media_per_listing,
+        "consent_text_version": settings.consent_text_version,
+        "demo_mode": settings.demo_mode,
+        "max_upload_bytes": settings.max_upload_bytes,
+        "max_media_per_listing": settings.max_media_per_listing,
     }
 
 
 @router.get("/locations", response_model=list[LocationOut], tags=["locations"])
-async def locations(session: SessionDep) -> list[LocationOut]:
-    rows = await session.scalars(select(Location).order_by(Location.path))
-    return [LocationOut.model_validate(r) for r in rows]
+async def locations(directory: LocationDirectoryDep, response: Response) -> list[LocationOut]:
+    response.headers["Cache-Control"] = _REFERENCE_CACHE
+    return [LocationOut.model_validate(r, from_attributes=True) for r in await directory.all()]
 
 
 @router.get("/me/listings", response_model=list[ListingPrivate], tags=["me"])
-async def my_listings(p: PrincipalDep, session: SessionDep) -> list[ListingPrivate]:
-    return [svc.to_private(listing, n) for listing, n in await svc.list_manageable(session, p)]
+async def my_listings(p: PrincipalDep, service: ListingServiceDep) -> list[ListingPrivate]:
+    return [ListingPresenter.to_private(listing, n) for listing, n in await service.list_manageable(p)]
 
 
 @router.get("/me/leads", response_model=list[LeadWithListing], tags=["me"])
 async def my_leads(
-    p: PrincipalDep, session: SessionDep, listing_id: Annotated[uuid.UUID | None, Query()] = None
+    p: PrincipalDep, leads: LeadServiceDep, listing_id: Annotated[uuid.UUID | None, Query()] = None
 ) -> list[LeadWithListing]:
-    rows = await lead_service.list_leads_for(session, p, listing_id)
     return [
         LeadWithListing(
             id=lead.id,
@@ -58,5 +59,5 @@ async def my_leads(
             last_contact_at=lead.last_contact_at,
             listing_title=listing.title_en or listing.title_ar,
         )
-        for lead, listing in rows
+        for lead, listing in await leads.inbox(p, listing_id)
     ]

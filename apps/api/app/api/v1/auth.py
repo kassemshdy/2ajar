@@ -1,20 +1,18 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response, status
+from fastapi import APIRouter, Depends, Request, Response, status
 
 from app.api.deps import (
     ACCESS_COOKIE,
     CSRF_COOKIE,
     REFRESH_COOKIE,
     CurrentUser,
-    SessionDep,
 )
+from app.api.providers import AccountServiceDep, TokenServiceDep
 from app.core.config import get_settings
 from app.core.errors import Unauthorized
 from app.core.ratelimit import rate_limit
 from app.core.security import new_opaque_token
 from app.models import User
-from app.notify import msg_user_registered, notify
 from app.schemas.auth import LoginIn, MembershipOut, RegisterIn, UserOut
-from app.services import auth as auth_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -79,38 +77,39 @@ def clear_auth_cookies(response: Response) -> None:
     dependencies=[Depends(rate_limit("register", 10, 3600))],
 )
 async def register(
-    data: RegisterIn, request: Request, response: Response, session: SessionDep, background: BackgroundTasks
+    data: RegisterIn,
+    request: Request,
+    response: Response,
+    accounts: AccountServiceDep,
+    tokens: TokenServiceDep,
 ) -> UserOut:
-    user = await auth_service.register_user(session, data, request)
-    access, refresh = await auth_service.issue_tokens(session, user)
-    set_auth_cookies(response, access, refresh)
-    out = user_out(user)
-    org = out.memberships[0].organization_name if out.memberships else None
-    background.add_task(notify, msg_user_registered(user.full_name, user.role.value, org))
-    return out
+    user = await accounts.register(data, request)
+    set_auth_cookies(response, *await tokens.issue(user))
+    return user_out(user)
 
 
 @router.post("/login", response_model=UserOut, dependencies=[Depends(rate_limit("login", 10, 300))])
-async def login(data: LoginIn, request: Request, response: Response, session: SessionDep) -> UserOut:
-    user = await auth_service.authenticate(session, data.email, data.password, request)
-    access, refresh = await auth_service.issue_tokens(session, user)
-    set_auth_cookies(response, access, refresh)
+async def login(
+    data: LoginIn, request: Request, response: Response, accounts: AccountServiceDep, tokens: TokenServiceDep
+) -> UserOut:
+    user = await accounts.authenticate(data.email, data.password, request)
+    set_auth_cookies(response, *await tokens.issue(user))
     return user_out(user)
 
 
 @router.post("/refresh", response_model=UserOut, dependencies=[Depends(rate_limit("refresh", 60, 300))])
-async def refresh(request: Request, response: Response, session: SessionDep) -> UserOut:
+async def refresh(request: Request, response: Response, tokens: TokenServiceDep) -> UserOut:
     raw = request.cookies.get(REFRESH_COOKIE)
     if not raw:
         raise Unauthorized("No session")
-    user, access, new_refresh = await auth_service.rotate_refresh_token(session, raw)
+    user, access, new_refresh = await tokens.rotate(raw)
     set_auth_cookies(response, access, new_refresh)
     return user_out(user)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-async def logout(request: Request, session: SessionDep) -> Response:
-    await auth_service.logout(session, request.cookies.get(REFRESH_COOKIE))
+async def logout(request: Request, tokens: TokenServiceDep) -> Response:
+    await tokens.logout(request.cookies.get(REFRESH_COOKIE))
     response = Response(status_code=status.HTTP_204_NO_CONTENT)
     clear_auth_cookies(response)
     return response

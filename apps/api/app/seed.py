@@ -37,6 +37,7 @@ from app.models.enums import (
     TransactionType,
     UserRole,
 )
+from app.repositories.locations import LocationDirectory
 from app.storage import get_storage
 
 # (slug, name_en, name_ar, lat, lng, children)
@@ -120,6 +121,7 @@ async def seed_locations(session: AsyncSession) -> int:
     for spec in LOCATIONS:
         await upsert(spec, None, 0)
     await session.commit()
+    LocationDirectory.invalidate()  # cached reference data must reflect the new tree
     return created
 
 

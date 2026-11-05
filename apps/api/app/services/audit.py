@@ -54,3 +54,30 @@ def record_event(
     session.add(
         ListingEvent(listing_id=listing_id, event_type=event_type, user_id=user_id, session_hash=session_hash)
     )
+
+
+class AuditTrail:
+    """Session-bound convenience wrapper so services don't repeat audit plumbing."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    def record(
+        self,
+        actor_id: uuid.UUID | None,
+        action: str,
+        resource_type: str,
+        resource_id: uuid.UUID | None,
+        *,
+        request: Request | None = None,
+        data: dict[str, Any] | None = None,
+    ) -> None:
+        audit(
+            self._session,
+            actor_id=actor_id,
+            action=action,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            data=data,
+            request=request,
+        )
