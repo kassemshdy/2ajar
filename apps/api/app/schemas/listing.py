@@ -137,3 +137,19 @@ class ListingPrivate(ListingPublic):
 
 class WhatsAppHandoffOut(APIModel):
     url: str
+
+
+class ImportRowOut(APIModel):
+    row: int
+    ok: bool
+    listing_id: uuid.UUID | None
+    title: str | None
+    errors: list[str]
+
+
+class ImportResultOut(APIModel):
+    dry_run: bool
+    total: int
+    valid: int
+    created: int
+    rows: list[ImportRowOut]

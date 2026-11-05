@@ -44,7 +44,7 @@ from app.schemas.listing import (
 )
 from app.services.audit import audit, record_event
 from app.services.images import process_image
-from app.storage import get_storage
+from app.storage import get_storage, media_url
 
 PROPERTY_FIELDS = ("bedrooms", "bathrooms", "area_sqm", "floor", "furnished", "property_type", "location_id")
 LISTING_TEXT_FIELDS = ("title_en", "title_ar", "description_en", "description_ar")
@@ -95,7 +95,6 @@ def _publisher(listing: Listing) -> PublisherOut:
 
 
 def to_public(listing: Listing) -> ListingPublic:
-    storage = get_storage()
     prop = listing.property
     loc = prop.location
     return ListingPublic(
@@ -117,7 +116,7 @@ def to_public(listing: Listing) -> ListingPublic:
         ),
         location=LocationBrief(slug=loc.slug, name_en=loc.name_en, name_ar=loc.name_ar, path=loc.path),
         media=[
-            MediaOut(id=m.id, url=storage.url(m.storage_key), width=m.width, height=m.height)
+            MediaOut(id=m.id, url=media_url(m.storage_key), width=m.width, height=m.height)
             for m in listing.media
         ],
         publisher=_publisher(listing),
@@ -195,6 +194,23 @@ async def create_listing(
     if not can_create_listing(p):
         raise Forbidden("Only owners and brokers can create listings")
     await _require_location(session, data.location_id)
+    listing = await add_listing(session, p, data)
+    audit(
+        session,
+        actor_id=p.user_id,
+        action="listing.create",
+        resource_type="listing",
+        resource_id=listing.id,
+        request=request,
+    )
+    await session.commit()
+    loaded = await _load(session, listing.id)
+    assert loaded is not None
+    return loaded
+
+
+async def add_listing(session: AsyncSession, p: Principal, data: ListingCreate) -> Listing:
+    """Insert a draft property + listing without committing. Callers check authorization and location."""
     org_id = p.primary_org_id if p.role in (UserRole.broker, UserRole.platform_admin) else None
     prop = Property(
         owner_user_id=p.user_id,
@@ -226,18 +242,7 @@ async def create_listing(
     )
     session.add(listing)
     await session.flush()
-    audit(
-        session,
-        actor_id=p.user_id,
-        action="listing.create",
-        resource_type="listing",
-        resource_id=listing.id,
-        request=request,
-    )
-    await session.commit()
-    loaded = await _load(session, listing.id)
-    assert loaded is not None
-    return loaded
+    return listing
 
 
 async def update_listing(

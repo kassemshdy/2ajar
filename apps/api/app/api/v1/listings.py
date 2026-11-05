@@ -1,15 +1,26 @@
 import uuid
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, File, Query, Request, Response, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Query, Request, Response, UploadFile, status
+from fastapi.responses import PlainTextResponse
 
-from app.api.deps import OptionalPrincipal, OptionalUser, PrincipalDep, SessionDep
+from app.api.deps import (
+    CurrentUser,
+    OptionalPrincipal,
+    OptionalUser,
+    PrincipalDep,
+    SessionDep,
+    principal_of,
+)
 from app.authz.policies import can_manage_listing
 from app.core.ratelimit import rate_limit
 from app.models.enums import Furnished, PropertyType, TransactionType
+from app.notify import msg_import, msg_lead, msg_listing, notify
 from app.schemas.common import Page
 from app.schemas.lead import LeadCreate, LeadReceipt
 from app.schemas.listing import (
+    ImportResultOut,
+    ImportRowOut,
     ListingCreate,
     ListingPrivate,
     ListingPublic,
@@ -17,11 +28,24 @@ from app.schemas.listing import (
     MediaOut,
     WhatsAppHandoffOut,
 )
+from app.services import import_csv
 from app.services import leads as lead_service
 from app.services import listings as svc
-from app.storage import get_storage
+from app.storage import media_url
 
 router = APIRouter(prefix="/listings", tags=["listings"])
+
+
+def listing_message(verb: str, out: ListingPrivate) -> str:
+    return msg_listing(
+        verb,
+        listing_id=out.id,
+        title=out.title.en or out.title.ar,
+        price_usd=out.price_usd,
+        period=out.price_period.value,
+        area=out.location.name_en,
+        demo=out.is_demo,
+    )
 
 
 @router.get("", response_model=Page[ListingPublic])
@@ -58,10 +82,49 @@ async def search(
 
 @router.post("", response_model=ListingPrivate, status_code=status.HTTP_201_CREATED)
 async def create(
-    data: ListingCreate, request: Request, p: PrincipalDep, session: SessionDep
+    data: ListingCreate, request: Request, p: PrincipalDep, session: SessionDep, background: BackgroundTasks
 ) -> ListingPrivate:
-    listing = await svc.create_listing(session, p, data, request)
-    return svc.to_private(listing)
+    out = svc.to_private(await svc.create_listing(session, p, data, request))
+    background.add_task(notify, listing_message("created", out))
+    return out
+
+
+@router.get("/import/template", response_class=PlainTextResponse)
+async def import_template() -> PlainTextResponse:
+    return PlainTextResponse(
+        import_csv.template_csv(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="2ajar-listings-template.csv"'},
+    )
+
+
+@router.post(
+    "/import",
+    response_model=ImportResultOut,
+    dependencies=[Depends(rate_limit("import", 30, 3600))],
+)
+async def import_listings(
+    request: Request,
+    user: CurrentUser,
+    session: SessionDep,
+    background: BackgroundTasks,
+    file: Annotated[UploadFile, File()],
+    dry_run: bool = True,
+) -> ImportResultOut:
+    raw = await file.read(import_csv.MAX_BYTES + 1)
+    results = await import_csv.import_listings(
+        session, principal_of(user), raw, dry_run=dry_run, request=request
+    )
+    created = sum(1 for r in results if r.listing_id)
+    if created:
+        background.add_task(notify, msg_import(created=created, actor_name=user.full_name))
+    return ImportResultOut(
+        dry_run=dry_run,
+        total=len(results),
+        valid=sum(1 for r in results if r.ok),
+        created=created,
+        rows=[ImportRowOut.model_validate(r, from_attributes=True) for r in results],
+    )
 
 
 @router.get("/{listing_id}", response_model=ListingPublic | ListingPrivate)
@@ -83,9 +146,11 @@ async def update(
 
 @router.post("/{listing_id}/publish", response_model=ListingPrivate)
 async def publish(
-    listing_id: uuid.UUID, request: Request, p: PrincipalDep, session: SessionDep
+    listing_id: uuid.UUID, request: Request, p: PrincipalDep, session: SessionDep, background: BackgroundTasks
 ) -> ListingPrivate:
-    return svc.to_private(await svc.publish_listing(session, p, listing_id, request))
+    out = svc.to_private(await svc.publish_listing(session, p, listing_id, request))
+    background.add_task(notify, listing_message("published", out))
+    return out
 
 
 @router.post("/{listing_id}/pause", response_model=ListingPrivate)
@@ -116,9 +181,7 @@ async def upload_media(
     file: Annotated[UploadFile, File()],
 ) -> MediaOut:
     media = await svc.add_media(session, p, listing_id, file, request)
-    return MediaOut(
-        id=media.id, url=get_storage().url(media.storage_key), width=media.width, height=media.height
-    )
+    return MediaOut(id=media.id, url=media_url(media.storage_key), width=media.width, height=media.height)
 
 
 @router.delete("/{listing_id}/media/{media_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -168,10 +231,19 @@ async def create_lead(
     response: Response,
     user: OptionalUser,
     session: SessionDep,
+    background: BackgroundTasks,
 ) -> LeadReceipt:
     lead, deduplicated = await lead_service.create_lead(
         session, listing_id, data, user.id if user else None, request
     )
     if deduplicated:
         response.status_code = status.HTTP_200_OK
+    else:
+        listing = await svc.get_public_listing(session, listing_id)
+        msg = msg_lead(
+            listing_title=listing.title_en or listing.title_ar,
+            source=lead.source.value,
+            phone_e164=lead.phone_e164,
+        )
+        background.add_task(notify, msg)
     return LeadReceipt(id=lead.id, deduplicated=deduplicated)
