@@ -14,6 +14,7 @@ from sqlalchemy import (
     String,
     Text,
     false,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -53,16 +54,32 @@ class Listing(UUIDPk, Timestamps, Base):
     __tablename__ = "listings"
     __table_args__ = (
         CheckConstraint("price_usd_cents > 0", name="price_positive"),
-        Index("ix_listings_public_search", "status", "transaction_type", "published_at"),
+        # Indexes are shaped by measured query plans (docs/DATABASE.md "Index strategy").
+        # Public search only ever reads published rows, so partial indexes stay small and hot.
+        Index(
+            "ix_listings_published_newest",
+            "transaction_type",
+            text("published_at DESC"),
+            postgresql_where=text("status = 'published'"),
+        ),
+        Index(
+            "ix_listings_published_price",
+            "transaction_type",
+            "price_usd_cents",
+            postgresql_where=text("status = 'published'"),
+        ),
+        # Dashboards: "my listings, most recently updated first" for creators and agency admins.
+        Index("ix_listings_creator_updated", "created_by_user_id", text("updated_at DESC")),
+        Index("ix_listings_org_updated", "organization_id", text("updated_at DESC")),
     )
 
     property_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("properties.id", ondelete="CASCADE"), index=True
     )
-    created_by_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), index=True)
-    organization_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
+    created_by_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    organization_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("organizations.id"))
     transaction_type: Mapped[TransactionType] = mapped_column(enum_type(TransactionType, "transaction_type"))
-    price_usd_cents: Mapped[int] = mapped_column(BigInteger, index=True)
+    price_usd_cents: Mapped[int] = mapped_column(BigInteger)
     price_period: Mapped[PricePeriod] = mapped_column(enum_type(PricePeriod, "price_period"))
     status: Mapped[ListingStatus] = mapped_column(
         enum_type(ListingStatus, "listing_status"), default=ListingStatus.draft

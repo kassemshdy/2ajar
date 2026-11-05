@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, func
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -14,7 +14,8 @@ from app.models.types import enum_type
 class Lead(UUIDPk, Timestamps, Base):
     __tablename__ = "leads"
     __table_args__ = (
-        Index("ix_leads_listing_created", "listing_id", "created_at"),
+        # Lead inbox: per-listing, most recent contact first (also serves lead counts per listing).
+        Index("ix_leads_listing_last_contact", "listing_id", text("last_contact_at DESC")),
         Index("ix_leads_dedupe", "listing_id", "phone_e164", "created_at"),
     )
 
