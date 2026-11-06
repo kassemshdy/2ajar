@@ -1,0 +1,13 @@
+{
+  "name": "2ajar",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "dev:web": "pnpm --filter @2ajar/web dev",
+    "lint": "pnpm --filter @2ajar/web lint",
+    "typecheck": "pnpm -r typecheck",
+    "build": "pnpm --filter @2ajar/web build",
+    "contracts:gen": "pnpm --filter @2ajar/contracts gen",
+    "e2e": "pnpm --filter @2ajar/e2e test"
+  }
+}

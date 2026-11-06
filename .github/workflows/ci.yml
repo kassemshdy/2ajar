@@ -1,0 +1,140 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DATABASE_URL: postgresql+psycopg://ajar:ajar@localhost:5432/ajar_test
+  TEST_DATABASE_URL: postgresql+psycopg://ajar:ajar@localhost:5432/ajar_test
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ajar
+          POSTGRES_PASSWORD: ajar
+          POSTGRES_DB: ajar_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ajar -d ajar_test" --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Lint
+        run: uv run ruff check . && uv run ruff format --check .
+      - name: Typecheck
+        run: uv run mypy app
+      - name: Migrations up / down / up
+        run: uv run alembic upgrade head && uv run alembic downgrade base && uv run alembic upgrade head
+      - name: Tests with coverage (gate 90%)
+        run: uv run pytest -q --cov --cov-report=term --cov-report=xml --cov-fail-under=90
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-coverage
+          path: apps/api/coverage.xml
+          if-no-files-found: ignore
+      - name: Worker lint
+        working-directory: apps/worker
+        run: uv run --project ../api ruff check . && uv run --project ../api ruff format --check .
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: pnpm install --frozen-lockfile
+      - name: Contracts are up to date with the API
+        run: |
+          (cd apps/api && uv sync --frozen)
+          pnpm contracts:gen
+          git diff --exit-code packages/contracts
+      - run: pnpm --filter @2ajar/web lint
+      - run: pnpm -r typecheck
+      - name: Unit tests with coverage (gate 85%)
+        run: pnpm --filter @2ajar/web test:coverage
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-coverage
+          path: apps/web/coverage
+          if-no-files-found: ignore
+      - run: pnpm --filter @2ajar/web build
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [api, web]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ajar
+          POSTGRES_PASSWORD: ajar
+          POSTGRES_DB: ajar_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ajar -d ajar_test" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: pnpm install --frozen-lockfile
+      - name: Start API (demo data, local storage)
+        working-directory: apps/api
+        env:
+          DEMO_MODE: "true"
+        run: |
+          uv sync --frozen
+          uv run alembic upgrade head
+          uv run python -m app.seed --demo
+          nohup uv run uvicorn app.main:app --port 8000 > ../../api.log 2>&1 &
+      - name: Build and start web
+        env:
+          API_INTERNAL_URL: http://localhost:8000
+        run: |
+          pnpm --filter @2ajar/web build
+          nohup pnpm --filter @2ajar/web start > web.log 2>&1 &
+          npx --yes wait-on@8.0.1 -t 90000 http-get://localhost:8000/readyz http-get://localhost:3000/api/health
+      - name: Install Playwright browser
+        working-directory: tests/e2e
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Playwright
+        working-directory: tests/e2e
+        run: pnpm exec playwright test
+      - if: failure()
+        run: tail -n 200 api.log web.log
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tests/e2e/playwright-report
+          if-no-files-found: ignore

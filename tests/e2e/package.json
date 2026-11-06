@@ -1,0 +1,13 @@
+{
+  "name": "@2ajar/e2e",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.20.5",
+    "typescript": "5.9.3"
+  }
+}
