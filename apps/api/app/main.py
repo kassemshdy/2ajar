@@ -53,11 +53,13 @@ def create_app() -> FastAPI:
         response.headers.setdefault("X-Frame-Options", "DENY")
         return response
 
-    @app.api_route("/healthz", methods=["GET", "HEAD"], tags=["health"])
+    @app.get("/healthz", tags=["health"])
+    @app.head("/healthz", include_in_schema=False)
     async def healthz() -> dict[str, str]:
         return {"status": "ok"}
 
-    @app.api_route("/readyz", methods=["GET", "HEAD"], tags=["health"])
+    @app.get("/readyz", tags=["health"])
+    @app.head("/readyz", include_in_schema=False)
     async def readyz() -> JSONResponse:
         try:
             async with get_engine().connect() as conn:
