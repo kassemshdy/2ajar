@@ -1,15 +1,18 @@
 import secrets
 import uuid
+from collections.abc import Awaitable, Callable
 from typing import Annotated
 
 from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.authz.permissions import effective_permissions
 from app.authz.policies import Principal
 from app.core.errors import Forbidden, Unauthorized
 from app.core.security import decode_access_token
 from app.db.session import get_session
 from app.models import User
+from app.models.enums import Permission
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
@@ -71,7 +74,19 @@ def principal_of(user: User) -> Principal:
         user_id=user.id,
         role=user.role,
         org_roles={m.organization_id: m.role for m in user.memberships},
+        permissions=effective_permissions(user.role, user.extra_permissions or []),
     )
+
+
+def require_permission(permission: Permission) -> Callable[[Principal], Awaitable[Principal]]:
+    """Dependency factory: 403 unless the caller holds ``permission`` (back-office endpoints)."""
+
+    async def dependency(p: Annotated[Principal, Depends(get_principal)]) -> Principal:
+        if not p.has(permission):
+            raise Forbidden("You do not have permission to do this")
+        return p
+
+    return dependency
 
 
 async def get_principal(user: Annotated[User, Depends(get_current_user)]) -> Principal:
