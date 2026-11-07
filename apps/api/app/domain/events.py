@@ -57,3 +57,19 @@ class LeadReceived(DomainEvent):
 class ListingsImported(DomainEvent):
     created: int
     actor_name: str
+
+
+@dataclass(frozen=True, slots=True)
+class TicketCreated(DomainEvent):
+    number: int
+    title: str
+    category: str
+    reporter_name: str
+    page_url: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class TicketReplied(DomainEvent):
+    number: int
+    by_staff: bool
+    via: str
