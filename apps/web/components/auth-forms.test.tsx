@@ -16,7 +16,7 @@ describe("LoginForm", () => {
     await user.type(screen.getByLabelText("Password"), "secret-password");
     await user.click(screen.getByRole("button", { name: "Log in" }));
     await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith("/dashboard"));
-    expect(JSON.parse(calls[0].init.body as string)).toEqual({ email: "a@example.com", password: "secret-password" });
+    expect(JSON.parse(calls.find((c) => c.method !== "GET")!.init.body as string)).toEqual({ email: "a@example.com", password: "secret-password" });
   });
 
   it("shows the server error", async () => {
@@ -45,7 +45,7 @@ describe("RegisterForm", () => {
     await user.type(screen.getByLabelText("كلمة المرور"), "long-password-1");
     await user.click(screen.getByRole("button", { name: "إنشاء الحساب" }));
     await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith("/dashboard"));
-    expect(JSON.parse(calls[0].init.body as string)).toMatchObject({
+    expect(JSON.parse(calls.find((c) => c.method !== "GET")!.init.body as string)).toMatchObject({
       role: "broker", organization_name: "Cedar", phone: "70123456", locale: "ar",
     });
   });
@@ -61,7 +61,7 @@ describe("RegisterForm", () => {
     await user.type(screen.getByLabelText("Password"), "long-password-1");
     await user.click(screen.getByRole("button", { name: "Create account" }));
     await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith("/listings"));
-    expect(JSON.parse(calls[0].init.body as string)).toMatchObject({ role: "seeker", organization_name: null, phone: null });
+    expect(JSON.parse(calls.find((c) => c.method !== "GET")!.init.body as string)).toMatchObject({ role: "seeker", organization_name: null, phone: null });
   });
 
   it("shows a network error", async () => {

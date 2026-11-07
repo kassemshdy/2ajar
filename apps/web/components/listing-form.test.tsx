@@ -24,7 +24,7 @@ describe("ListingForm (create)", () => {
     await user.type(screen.getByLabelText("WhatsApp number for inquiries"), "70123456");
     await user.click(screen.getByTestId("save-listing"));
     await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith("/dashboard/listings/new-id/edit"));
-    expect(JSON.parse(calls[0].init.body as string)).toEqual({
+    expect(JSON.parse(calls.find((c) => c.method !== "GET")!.init.body as string)).toEqual({
       transaction_type: "rent", property_type: "apartment", location_id: "a1", price_usd: 900,
       price_period: "yearly", bedrooms: 2, bathrooms: null, area_sqm: null, floor: null, furnished: null,
       amenities: ["sea_view"], title_en: "Flat", title_ar: null, description_en: null, description_ar: null,
@@ -44,7 +44,7 @@ describe("ListingForm (create)", () => {
     await user.type(screen.getByLabelText("Price (USD)"), "250000");
     await user.click(screen.getByTestId("save-listing"));
     expect(await screen.findByTestId("form-error")).toHaveTextContent("Bad price");
-    expect(JSON.parse(calls[0].init.body as string)).toMatchObject({ transaction_type: "sale", price_period: "total" });
+    expect(JSON.parse(calls.find((c) => c.method !== "GET")!.init.body as string)).toMatchObject({ transaction_type: "sale", price_period: "total" });
   });
 });
 
