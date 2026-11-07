@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import EmailStr, Field
 
-from app.models.enums import OrgRole, UserRole
+from app.models.enums import OrgRole, Permission, UserRole
 from app.schemas.common import APIModel
 
 
@@ -36,3 +36,4 @@ class UserOut(APIModel):
     role: UserRole
     locale: str
     memberships: list[MembershipOut]
+    permissions: list[Permission] = []

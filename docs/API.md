@@ -88,6 +88,36 @@ The publisher's WhatsApp number is **not** included; it is only exposed through 
 
 All of these return **404** for resources the caller cannot manage.
 
+## Tickets (signed-in users)
+
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/tickets` | `{category: bug\|feedback\|question, title, description, page_url?, context?}` → `201 Ticket`. Rate-limited. |
+| GET | `/me/tickets` | My tickets, newest first. |
+| GET | `/tickets/{id}` | Reporter or `tickets.read`; internal notes only for staff; otherwise 404. |
+| POST | `/tickets/{id}/comments` | `{body, is_internal?}`. A reporter reply reopens a resolved ticket. Internal notes need `tickets.manage`. |
+| POST / GET | `/tickets/{id}/attachment` | Upload (image, re-encoded) / fetch the private screenshot (`Cache-Control: private, no-store`). |
+
+## API tokens (`mcp.access`)
+
+`GET/POST /me/api-tokens`, `DELETE /me/api-tokens/{id}`. The raw token is returned once at creation.
+
+## Admin (permission per route)
+
+| Method | Path | Permission |
+|---|---|---|
+| GET | `/admin/users?q=&role=&is_active=&page=` | `users.read` |
+| GET | `/admin/users/{id}` | `users.read` |
+| PATCH | `/admin/users/{id}` `{role?, is_active?, extra_permissions?, full_name?}` | `users.manage` |
+| GET | `/admin/permissions` | `users.read` |
+| GET | `/admin/tickets?status=&priority=&q=&assignee_id=` | `tickets.read` |
+| PATCH | `/admin/tickets/{id}` `{status?, priority?, category?, assignee_user_id?}` | `tickets.manage` |
+| GET | `/admin/stats` | `analytics.read` |
+
+## MCP
+
+`POST /mcp` — Model Context Protocol (Streamable HTTP, stateless JSON). Bearer API token required. See DEPLOYMENT.md.
+
 ## Planned (later milestones)
 
 - `POST /ai/search` (M3): `{query, conversation_id?, locale}` → `{intent, clarification?, results:[{listing, reasons[]}]}`

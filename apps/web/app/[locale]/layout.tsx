@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { BugReportButton } from "@/components/bug-report-button";
 import { Header } from "@/components/header";
+import { SessionProvider } from "@/lib/session";
 import { isRtl, routing } from "@/i18n/routing";
 import "../globals.css";
 
@@ -39,8 +41,11 @@ export default async function LocaleLayout({
     <html lang={locale} dir={isRtl(locale) ? "rtl" : "ltr"}>
       <body className="min-h-screen antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <Header />
-          <main className="mx-auto w-full max-w-6xl px-4 py-6">{children}</main>
+          <SessionProvider>
+            <Header />
+            <main className="mx-auto w-full max-w-6xl px-4 py-6">{children}</main>
+            <BugReportButton />
+          </SessionProvider>
           <footer className="mt-12 border-t border-border py-8 text-center text-sm text-muted-foreground">
             {t("tagline")}
           </footer>

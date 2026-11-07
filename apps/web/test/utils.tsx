@@ -4,11 +4,12 @@ import type { ReactElement } from "react";
 import { vi } from "vitest";
 import ar from "../messages/ar.json";
 import en from "../messages/en.json";
+import { SessionProvider } from "@/lib/session";
 
 export function renderWithIntl(ui: ReactElement, locale: "en" | "ar" = "en") {
   return render(
     <NextIntlClientProvider locale={locale} messages={locale === "ar" ? ar : en} timeZone="Asia/Beirut">
-      {ui}
+      <SessionProvider>{ui}</SessionProvider>
     </NextIntlClientProvider>,
   );
 }

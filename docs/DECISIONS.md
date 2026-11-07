@@ -73,6 +73,21 @@ one implementation of every rule, and services are testable without HTTP.
 Every index must be justified by an `EXPLAIN ANALYZE` on realistic volume (see DATABASE.md). Superseded indexes
 are dropped, because each extra index slows writes and wastes cache.
 
+## ADR-018 RBAC = roles + named permissions + per-user grants
+Roles alone forced new roles for every combination (e.g. "a broker who helps with support"), while full ACLs
+were overkill. Roles map to named permissions; admins add individual grants. `users.manage` is role-only, so a
+grant can never escalate someone to admin.
+
+## ADR-019 MCP server inside the API, authenticated by personal tokens
+The MCP server runs in the API process and reuses its services, so there is one set of rules and no second
+deployment. Personal tokens (hashed, expiring, revocable) act as their owner with the owner's *current*
+permissions. We did not use OAuth for MCP yet: it adds an authorization server for a handful of staff users.
+Writes are limited to ticket comments and status; there is no SQL access and no deletes.
+
+## ADR-020 Superuser from environment variables
+The bootstrap admin is declared in env (`SUPERUSER_EMAIL/PASSWORD`) and re-asserted on every deploy, so access
+can always be recovered by changing a variable, with no shell into the container.
+
 ---
 
 ## Assumptions

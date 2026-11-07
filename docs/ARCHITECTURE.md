@@ -86,6 +86,28 @@ Memory bounds:
 All of this is per process, which is fine for a single API replica. Running several replicas requires a shared
 store for rate limits (ADR-007), while caches can stay per process (ADR-014).
 
+## 2b. Back office: RBAC, tickets and MCP
+
+- **Roles** (`users.role`): seeker, owner, broker, staff, platform_admin.
+  - **Permissions** (`app/authz/permissions.py`): `users.read`, `users.manage`, `tickets.read`,
+    `tickets.manage`, `listings.moderate`, `analytics.read` and `mcp.access`.
+  - Each role grants a default set; admins can grant extras per user (`users.extra_permissions`).
+    `users.manage` is never grantable this way, so only the platform-admin role holds it.
+  - `require_permission(...)` guards every `/admin/*` route.
+  - The user-management service blocks self-lockout and removing the last active admin.
+    Deactivation revokes sessions and API tokens.
+- **Tickets**: a floating "Report a bug" button (signed-in users) creates a ticket. It captures the page URL and
+  browser context; a screenshot is optional.
+  - Reporters see their tickets and public replies. Staff see everything, including internal notes, and triage
+    status, priority and assignee.
+  - Screenshots are private (served only via `/tickets/{id}/attachment`). New tickets are announced on Telegram.
+- **MCP** (`app/mcp_server.py`): an `MCPServer` (MCP Python SDK v2) mounted at `/api/v1/mcp`, wrapped by a
+  bearer-token ASGI middleware.
+  - Tools reuse the same services as the HTTP API (no duplicate business logic) and raise `ToolError` for
+    permission or domain errors.
+  - User-written ticket text is returned under `untrusted_user_content`, and the server instructions tell the
+    model to treat it as data (prompt-injection defence).
+
 ## 3. Authentication
 
 - Passwords hashed with **argon2id** (`argon2-cffi`). Minimum 10 chars; checked against a short common-password list.

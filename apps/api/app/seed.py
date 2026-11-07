@@ -38,6 +38,7 @@ from app.models.enums import (
     UserRole,
 )
 from app.repositories.locations import LocationDirectory
+from app.services.superuser import ensure_superuser
 from app.storage import get_storage
 
 # (slug, name_en, name_ar, lat, lng, children)
@@ -367,6 +368,9 @@ async def main(demo: bool = False, purge: bool = False) -> int:
             return 0
         n_loc = await seed_locations(session)
         print(f"locations created: {n_loc}")
+        su = await ensure_superuser(session, s)
+        if su.email:
+            print(f"superuser {su.email}: {su.action}")  # never print the password
         if demo:
             n = await seed_demo(session)
             print(f"demo listings created: {n} (is_demo=true; visible only when DEMO_MODE=true)")

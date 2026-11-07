@@ -31,7 +31,7 @@ describe("CsvImport", () => {
     await user.click(screen.getByTestId("csv-confirm"));
     expect(await screen.findByTestId("csv-created")).toHaveTextContent("1 draft created");
     expect(screen.getByRole("link", { name: "Add photos" })).toHaveAttribute("href", "/dashboard/listings/new/edit");
-    expect(calls[0].init.body).toBeInstanceOf(FormData);
+    expect(calls.find((c) => c.method !== "GET")!.init.body).toBeInstanceOf(FormData);
   });
 
   it("explains when nothing is importable and shows errors", async () => {

@@ -1,11 +1,9 @@
 "use client";
 
-import { Building2, LayoutDashboard, LogOut } from "lucide-react";
+import { Building2, LayoutDashboard, LifeBuoy, LogOut, Shield } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
-import type { User } from "@2ajar/contracts";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
-import { api } from "@/lib/api-client";
+import { useSession } from "@/lib/session";
 import { Button, buttonVariants } from "./ui/button";
 
 export function Header() {
@@ -13,17 +11,11 @@ export function Header() {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<User | null | undefined>(undefined);
-
-  useEffect(() => {
-    api<User>("/me")
-      .then(setUser)
-      .catch(() => setUser(null));
-  }, [pathname]);
+  const { user, signOut, can } = useSession();
+  const isBackOffice = can("users.read") || can("tickets.read");
 
   async function logout() {
-    await api("/auth/logout", { method: "POST" }).catch(() => undefined);
-    setUser(null);
+    await signOut();
     router.push("/");
     router.refresh();
   }
@@ -43,6 +35,15 @@ export function Header() {
           </Link>
           {user ? (
             <>
+              {isBackOffice ? (
+                <Link href="/admin" className={buttonVariants({ variant: "ghost", size: "sm" })} data-testid="nav-admin">
+                  <Shield className="size-4" aria-hidden />
+                  <span className="hidden sm:inline">{t("admin")}</span>
+                </Link>
+              ) : null}
+              <Link href="/tickets" className={buttonVariants({ variant: "ghost", size: "sm" })} aria-label={t("tickets")}>
+                <LifeBuoy className="size-4" aria-hidden />
+              </Link>
               <Link
                 href="/dashboard"
                 className={buttonVariants({ variant: "ghost", size: "sm" })}
