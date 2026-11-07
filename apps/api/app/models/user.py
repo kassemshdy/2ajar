@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, UniqueConstraint, false, true
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, Timestamps, UUIDPk
@@ -21,6 +22,8 @@ class User(UUIDPk, Timestamps, Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Back-office permissions granted on top of the role's defaults (see app/authz/permissions.py).
+    extra_permissions: Mapped[list[str]] = mapped_column(JSONB, default=list, server_default="[]")
 
     memberships: Mapped[list["OrganizationMember"]] = relationship(back_populates="user", lazy="selectin")
 
