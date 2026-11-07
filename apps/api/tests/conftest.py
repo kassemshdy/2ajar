@@ -34,6 +34,9 @@ API_DIR = Path(__file__).resolve().parents[1]
 BASE_URL = "http://testserver.local"
 PASSWORD = "correct-horse-battery"
 MUTABLE_TABLES = [
+    "ticket_comments",
+    "tickets",
+    "api_tokens",
     "audit_logs",
     "listing_events",
     "leads",
@@ -62,8 +65,30 @@ async def seeded_locations(migrated_db: None) -> None:
         await seed_locations(session)
 
 
+@pytest.fixture(scope="session", autouse=True)
+async def app_lifespan(seeded_locations: None) -> AsyncIterator[None]:
+    """Run the FastAPI lifespan once (starts the MCP session manager), like a real server would.
+
+    The lifespan is entered and exited inside one dedicated task: anyio cancel scopes must not cross tasks.
+    """
+    import asyncio
+
+    started, stop = asyncio.Event(), asyncio.Event()
+
+    async def runner() -> None:
+        async with app.router.lifespan_context(app):
+            started.set()
+            await stop.wait()
+
+    task = asyncio.create_task(runner())
+    await started.wait()
+    yield
+    stop.set()
+    await task
+
+
 @pytest.fixture(autouse=True)
-async def clean_db(seeded_locations: None) -> AsyncIterator[None]:
+async def clean_db(seeded_locations: None, app_lifespan: None) -> AsyncIterator[None]:
     limiter.reset()
     async with get_sessionmaker()() as session:
         await session.execute(text(f"TRUNCATE {', '.join(MUTABLE_TABLES)} CASCADE"))
@@ -203,3 +228,19 @@ async def published_listing(actor: Actor, **overrides: Any) -> dict[str, Any]:
     r = await actor.client.post(f"/api/v1/listings/{listing['id']}/publish")
     assert r.status_code == 200, r.text
     return dict(r.json())
+
+
+async def promote(actor: Actor, role: str, extra_permissions: list[str] | None = None) -> None:
+    """Test helper: change a registered actor's role directly in the database."""
+    from sqlalchemy import update
+
+    from app.models import User
+    from app.models.enums import UserRole
+
+    async with get_sessionmaker()() as session:
+        await session.execute(
+            update(User)
+            .where(User.id == actor.user["id"])
+            .values(role=UserRole(role), extra_permissions=extra_permissions or [])
+        )
+        await session.commit()
