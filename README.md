@@ -39,6 +39,14 @@ pnpm dev:web                    # http://localhost:3000 (proxies /api/v1 and /me
 Set `SEED_DEMO_PASSWORD` before seeding if you want to log in as a demo broker
 (e.g. `rami.broker@demo.2ajar.invalid`); otherwise demo accounts get unusable random passwords.
 
+## Back office & MCP
+
+- Set `SUPERUSER_EMAIL` and `SUPERUSER_PASSWORD` before `python -m app.seed` to create the platform admin, then log
+  in and open `/en/admin`.
+- Signed-in users get a floating **Report a bug** button. Staff triage reports under `/admin/tickets`, and
+  admins manage roles and permissions under `/admin/users`.
+- Create an API token at `/en/settings/tokens` and connect an MCP client to `/api/v1/mcp` (see `docs/DEPLOYMENT.md`).
+
 ## Checks
 
 ```bash
