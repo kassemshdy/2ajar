@@ -5,53 +5,72 @@ import { DemoBanner } from "@/components/demo-banner";
 import { CategoryBar } from "@/components/home/category-bar";
 import { NearYou } from "@/components/home/near-you";
 import { Row } from "@/components/home/row";
+import { SearchPill } from "@/components/home/search-pill";
 import { TopAreas } from "@/components/home/top-areas";
 import { ListingTile } from "@/components/listing-tile";
-import { apiGet, getPublicConfig, getSuggestions } from "@/lib/api-server";
+import { apiGet, getLocations, getPublicConfig, getSuggestions } from "@/lib/api-server";
 
 export const dynamic = "force-dynamic";
 
-const EMPTY: DiscoverOut = { recent: [], nights: [], hours: [], most_viewed: [], great_value: [], top_areas: [] };
+const EMPTY: DiscoverOut = {
+  recent: [], nights: [], hours: [], most_viewed: [], great_value: [], top_areas: [], by_area: [],
+};
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("home");
   const td = await getTranslations("discover");
-  const [config, discover, suggestions] = await Promise.all([
+  const [config, discover, suggestions, locations] = await Promise.all([
     getPublicConfig(),
     apiGet<DiscoverOut>("/discover").catch(() => null),
     getSuggestions().catch(() => null),
+    getLocations().catch(() => null),
   ]);
   const d = discover ?? EMPTY;
-  const list = (stay?: string) => `/${locale}/listings${stay ? `?stay=${stay}` : ""}`;
+  const ar = locale === "ar";
+  const list = (q: string) => `/${locale}/listings${q}`;
 
   return (
-    <div className="flex flex-col gap-10">
-      <DemoBanner show={config.demo_mode} />
-      <section className="flex flex-col gap-5 rounded-3xl bg-gradient-to-br from-primary to-teal-900 p-6 text-white sm:p-10">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold leading-tight sm:text-4xl">{t("headline")}</h1>
-          <p className="text-white/85">{t("subheadline")}</p>
+    <div className="flex flex-col gap-12">
+      {/* Search band: Airbnb-style pill, then the plain-language search that is 2ajar's own. */}
+      <section className="-mx-4 -mt-6 flex flex-col gap-4 border-b border-border bg-gradient-to-b from-white to-muted/60 px-4 pb-8 pt-6 sm:-mx-6 sm:px-6">
+        <h1 className="sr-only">{t("headline")}</h1>
+        <SearchPill locations={locations ?? []} />
+        <div className="mx-auto w-full max-w-4xl">
+          <AskBox slim suggestions={(suggestions ?? []).slice(0, 3)} />
         </div>
-        <AskBox suggestions={(suggestions ?? []).slice(0, 4)} />
+        <div className="mx-auto w-full max-w-5xl pt-2">
+          <CategoryBar />
+        </div>
       </section>
 
-      <CategoryBar />
+      <DemoBanner show={config.demo_mode} />
 
-      <NearYou />
+      {d.by_area.map((row) => {
+        const area = ar ? row.name_ar : row.name_en;
+        return (
+          <Row
+            key={row.slug}
+            title={td(row.kind === "stays" ? "staysIn" : "popularIn", { area })}
+            subtitle={(ar ? row.parent_ar : row.parent_en) ?? undefined}
+            href={list(`?location=${row.slug}`)}
+            testId="row-area"
+          >
+            {row.listings.map((l) => (
+              <ListingTile key={l.id} listing={l} />
+            ))}
+          </Row>
+        );
+      })}
 
-      <Row title={td("recent")} subtitle={td("recentHint")} href={list()} testId="row-recent">
+      <Row title={td("recent")} subtitle={td("recentHint")} href={list("")} testId="row-recent">
         {d.recent.map((l) => (
           <ListingTile key={l.id} listing={l} />
         ))}
       </Row>
 
-      <Row title={td("nights")} subtitle={td("nightsHint")} href={list("nights")} testId="row-nights">
-        {d.nights.map((l) => (
-          <ListingTile key={l.id} listing={l} />
-        ))}
-      </Row>
+      <NearYou />
 
       <Row title={td("mostViewed")} subtitle={td("mostViewedHint")} testId="row-most-viewed">
         {d.most_viewed.map((x) => (
@@ -61,12 +80,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       <TopAreas areas={d.top_areas} />
 
-      <Row title={td("hours")} subtitle={td("hoursHint")} href={list("hours")} testId="row-hours">
-        {d.hours.map((l) => (
-          <ListingTile key={l.id} listing={l} />
-        ))}
-      </Row>
-
       <Row title={td("greatValue")} subtitle={td("greatValueHint")} testId="row-great-value">
         {d.great_value.map((x) => (
           <ListingTile
@@ -74,6 +87,18 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             listing={x.listing}
             note={td("belowArea", { pct: x.below_area_median_pct })}
           />
+        ))}
+      </Row>
+
+      <Row title={td("nights")} subtitle={td("nightsHint")} href={list("?stay=nights")} testId="row-nights">
+        {d.nights.map((l) => (
+          <ListingTile key={l.id} listing={l} />
+        ))}
+      </Row>
+
+      <Row title={td("hours")} subtitle={td("hoursHint")} href={list("?stay=hours")} testId="row-hours">
+        {d.hours.map((l) => (
+          <ListingTile key={l.id} listing={l} />
         ))}
       </Row>
     </div>

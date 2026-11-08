@@ -654,6 +654,72 @@
         "title": "AreaProfileOut",
         "type": "object"
       },
+      "AreaRow": {
+        "additionalProperties": false,
+        "description": "A row of homes in one place (\"Popular homes in Batroun\", \"Places to stay in Faraya\").",
+        "properties": {
+          "kind": {
+            "enum": [
+              "homes",
+              "stays"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "listings": {
+            "items": {
+              "$ref": "#/components/schemas/ListingPublic"
+            },
+            "title": "Listings",
+            "type": "array"
+          },
+          "name_ar": {
+            "title": "Name Ar",
+            "type": "string"
+          },
+          "name_en": {
+            "title": "Name En",
+            "type": "string"
+          },
+          "parent_ar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Ar"
+          },
+          "parent_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent En"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug",
+          "name_en",
+          "name_ar",
+          "parent_en",
+          "parent_ar",
+          "kind",
+          "listings"
+        ],
+        "title": "AreaRow",
+        "type": "object"
+      },
       "AskHit": {
         "additionalProperties": false,
         "properties": {
@@ -905,6 +971,14 @@
         "additionalProperties": false,
         "description": "Each row is empty when there is nothing honest to show (e.g. no views yet), and the UI hides it.",
         "properties": {
+          "by_area": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AreaRow"
+            },
+            "title": "By Area",
+            "type": "array"
+          },
           "great_value": {
             "items": {
               "$ref": "#/components/schemas/ValueListing"

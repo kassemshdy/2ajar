@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRef } from "react";
 
@@ -33,22 +33,29 @@ export function Row({
   return (
     <section className="flex flex-col gap-3" data-testid={testId}>
       <div className="flex items-end justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
-          {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
+        <div className="min-w-0">
+          <h2 className="flex items-center gap-2 text-[22px] font-semibold tracking-tight">
+            {href ? (
+              <a href={href} className="group/title flex items-center gap-2 hover:underline">
+                {title}
+                <span className="flex size-7 items-center justify-center rounded-full bg-muted transition group-hover/title:bg-border">
+                  <ArrowRight className="size-4 rtl:rotate-180" aria-hidden />
+                  <span className="sr-only">{t("seeAll")}</span>
+                </span>
+              </a>
+            ) : (
+              title
+            )}
+          </h2>
+          {subtitle ? <p className="text-muted-foreground">{subtitle}</p> : null}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {href ? (
-            <a href={href} className="text-sm font-semibold underline underline-offset-4">
-              {t("seeAll")}
-            </a>
-          ) : null}
           <div className="hidden gap-1 sm:flex">
             <button
               type="button"
               onClick={() => scroll(-1)}
               aria-label={t("scrollPrev")}
-              className="rounded-full border border-border p-1.5 hover:shadow"
+              className="rounded-full bg-muted p-2 transition hover:bg-border"
             >
               <ChevronLeft className="size-4 rtl:rotate-180" aria-hidden />
             </button>
@@ -56,7 +63,7 @@ export function Row({
               type="button"
               onClick={() => scroll(1)}
               aria-label={t("scrollNext")}
-              className="rounded-full border border-border p-1.5 hover:shadow"
+              className="rounded-full bg-muted p-2 transition hover:bg-border"
             >
               <ChevronRight className="size-4 rtl:rotate-180" aria-hidden />
             </button>
@@ -68,7 +75,7 @@ export function Row({
         className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {children.map((child, i) => (
-          <div key={i} className="w-[72%] shrink-0 snap-start sm:w-[42%] md:w-[30%] lg:w-[23%]">
+          <div key={i} className="w-[70%] shrink-0 snap-start sm:w-[40%] md:w-[28%] lg:w-[18.5%]">
             {child}
           </div>
         ))}

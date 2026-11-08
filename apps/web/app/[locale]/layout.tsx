@@ -4,10 +4,21 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import { notFound } from "next/navigation";
 import { BugReportButton } from "@/components/bug-report-button";
 import { Header } from "@/components/header";
+import { SiteFooter } from "@/components/site-footer";
 import { FavoritesProvider } from "@/lib/favorites";
 import { SessionProvider } from "@/lib/session";
 import { isRtl, routing } from "@/i18n/routing";
+import { IBM_Plex_Sans_Arabic, Nunito_Sans } from "next/font/google";
 import "../globals.css";
+
+// Free, self-hosted lookalikes of Airbnb's rounded geometric sans (Cereal is proprietary).
+const latin = Nunito_Sans({ subsets: ["latin"], variable: "--font-latin", display: "swap" });
+const arabic = IBM_Plex_Sans_Arabic({
+  subsets: ["arabic"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-arabic",
+  display: "swap",
+});
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -36,10 +47,9 @@ export default async function LocaleLayout({
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
   const messages = await getMessages();
-  const t = await getTranslations("footer");
 
   return (
-    <html lang={locale} dir={isRtl(locale) ? "rtl" : "ltr"}>
+    <html lang={locale} dir={isRtl(locale) ? "rtl" : "ltr"} className={`${latin.variable} ${arabic.variable}`}>
       <body className="min-h-screen antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <SessionProvider>
@@ -49,9 +59,7 @@ export default async function LocaleLayout({
               <BugReportButton />
             </FavoritesProvider>
           </SessionProvider>
-          <footer className="mt-12 border-t border-border py-8 text-center text-sm text-muted-foreground">
-            {t("tagline")}
-          </footer>
+          <SiteFooter locale={locale} />
         </NextIntlClientProvider>
       </body>
     </html>

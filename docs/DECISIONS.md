@@ -114,6 +114,14 @@ needs at least three comparable homes in the same area, "top-rated neighbourhood
 (2ajar has no stays, so no guest ratings are shown or invented), and an empty row is hidden rather than padded.
 "Near you" asks for location only on click and never stores it.
 
+## ADR-025 Airbnb-like UI, 2ajar's own brand
+The interface follows Airbnb's patterns (ar.airbnb.com): slim header with a ☰ + avatar menu, a "Where · When · Who"
+pill, icon categories, rows per place, square two-line cards with a heart, phone tab bar, light link footer, and
+neutral greys (#222 / #6a6a6a / #ddd). Airbnb Cereal is proprietary, so we self-host free lookalikes (Nunito Sans,
+IBM Plex Sans Arabic) via next/font. The logo and the teal accent stay 2ajar's own: we copy patterns, not the brand.
+2ajar is mainly monthly apartment rentals, so apartments lead (categories, area rows); chalets and hourly come after.
+No availability calendar for now (owner decision).
+
 ---
 
 ## Assumptions

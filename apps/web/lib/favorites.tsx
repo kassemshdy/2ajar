@@ -31,7 +31,8 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
 
   const toggle = useCallback(
     async (listingId: string) => {
-      if (!user) {
+      if (user === undefined) return false; // session still loading: never mistake it for "signed out"
+      if (user === null) {
         router.push("/login");
         return false;
       }

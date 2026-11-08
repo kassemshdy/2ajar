@@ -1,13 +1,12 @@
-import { Star, Users } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type { ListingPublic } from "@2ajar/contracts";
-import { formatUsd, listingTitle, locationName, periodSuffixKey } from "@/lib/format";
+import { formatUsd, locationName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { FavoriteButton } from "./favorite-button";
 
 /**
- * Airbnb-style card: square photo with a heart, "Type · Area", title, guests/bedrooms, bold price per period,
- * and an optional honest note explaining why it is in this row (distance, visitors, value).
+ * Airbnb-style card: square photo with a heart, then two quiet lines, "Chalet in Faraya" and "$160 night ·
+ * 6 guests", plus an optional honest note explaining why it is in this row (distance, visitors, value).
  */
 export function ListingTile({
   listing,
@@ -24,16 +23,17 @@ export function ListingTile({
   const locale = useLocale();
   const cover = listing.media[0];
   const p = listing.property;
-  const suffix = periodSuffixKey(listing.price_period);
-  const facts = [
-    p.max_guests ? t("guests", { count: p.max_guests }) : null,
-    p.bedrooms != null ? t("bedrooms", { count: p.bedrooms }) : null,
-  ].filter(Boolean);
+  const unit = listing.price_period === "total" ? null : t(`unit_${listing.price_period}`);
+  const extra = p.max_guests
+    ? t("guests", { count: p.max_guests })
+    : p.bedrooms != null
+      ? t("bedrooms", { count: p.bedrooms })
+      : null;
 
   return (
     <a
       href={`/${locale}/listings/${listing.id}`}
-      className={cn("group flex flex-col gap-2", className)}
+      className={cn("group flex flex-col gap-2.5", className)}
       data-testid="listing-tile"
     >
       <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted">
@@ -42,7 +42,7 @@ export function ListingTile({
             src={cover.url}
             alt=""
             loading="lazy"
-            className="size-full object-cover transition duration-300 group-hover:scale-105"
+            className="size-full object-cover transition duration-300 group-hover:scale-[1.03]"
           />
         ) : (
           <div className="flex size-full items-center justify-center text-sm text-muted-foreground">{t("noPhotos")}</div>
@@ -56,31 +56,16 @@ export function ListingTile({
           <FavoriteButton listingId={listing.id} />
         </div>
       </div>
-      <div className="flex flex-col gap-0.5 text-[15px] leading-snug">
-        <p className="flex items-center justify-between gap-2 font-semibold">
-          <span className="truncate">
-            {te(p.property_type)} · {locationName(listing.location, locale)}
-          </span>
+      <div className="flex flex-col text-[15px] leading-5">
+        <p className="truncate font-medium">
+          {t("typeIn", { type: te(listing.property.property_type), area: locationName(listing.location, locale) })}
         </p>
-        <p className="line-clamp-1 text-muted-foreground" dir="auto">
-          {listingTitle(listing, locale)}
+        <p className="truncate text-muted-foreground">
+          <span className="text-foreground">{formatUsd(listing.price_usd, locale)}</span>
+          {unit ? ` ${unit}` : null}
+          {extra ? ` · ${extra}` : null}
         </p>
-        {facts.length ? (
-          <p className="flex items-center gap-1 text-muted-foreground">
-            {p.max_guests ? <Users className="size-3.5" aria-hidden /> : null}
-            {facts.join(" · ")}
-          </p>
-        ) : null}
-        {note ? (
-          <p className="flex items-center gap-1 text-sm text-primary">
-            <Star className="size-3.5" aria-hidden />
-            {note}
-          </p>
-        ) : null}
-        <p className="mt-0.5">
-          <span className="font-semibold">{formatUsd(listing.price_usd, locale)}</span>
-          {suffix ? <span className="text-muted-foreground"> {t(suffix)}</span> : null}
-        </p>
+        {note ? <p className="truncate text-sm text-primary">{note}</p> : null}
       </div>
     </a>
   );

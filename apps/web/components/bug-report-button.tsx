@@ -87,7 +87,7 @@ export function BugReportButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 end-4 z-30 flex items-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-medium text-background shadow-lg transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="fixed bottom-20 end-4 z-30 flex md:bottom-4 items-center gap-2 rounded-full bg-foreground px-4 py-3 text-sm font-medium text-background shadow-lg transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={t("open")}
         data-testid="bug-button"
       >

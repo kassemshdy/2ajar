@@ -6,6 +6,7 @@ export function formatUsd(amount: number, locale: string) {
   return new Intl.NumberFormat(numberLocale(locale), {
     style: "currency",
     currency: "USD",
+    currencyDisplay: "narrowSymbol", // "$950", never "US$ 950" (which reads badly in Arabic)
     maximumFractionDigits: 0,
   }).format(amount);
 }

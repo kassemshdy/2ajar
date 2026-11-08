@@ -100,6 +100,7 @@ are never public. `price_period` is `hourly | daily | nightly | weekly | monthly
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/discover` | Home rows: `recent`, `nights`, `hours`, `most_viewed[{listing, visitors_30d}]` (distinct visitors, 30 days), `great_value[{listing, below_area_median_pct}]` (≥15% under the area median price per m² among ≥3 monthly homes), `top_areas[{area, listing_count}]` (staff safety + quiet scores). Empty rows mean "nothing honest to show". |
+| GET | `/discover` → `by_area` | Up to 4 rows "Popular homes in X" / "Places to stay in X" (`kind`: `stays` when most homes there are rented by the night or hour) for places with ≥ 3 public homes, busiest first, with the parent district as subtitle. |
 | GET | `/listings/nearby?lat&lng&stay?&limit?` | Closest public rentals within 40 km → `[{listing, distance_km}]`. Coordinates are not stored. Rate-limited. |
 | GET | `/listings/{id}/similar` | Nearest public rentals for the same kind of stay (404 if not public). |
 | GET | `/me/favorites`, `/me/favorites/ids` | Saved listings that are still public, newest save first. |

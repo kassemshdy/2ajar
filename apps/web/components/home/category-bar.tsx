@@ -4,18 +4,19 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 
 /** Airbnb-style icon strip. Each category is a plain-language smart search, so it needs no extra filters. */
+// Apartments by the month first (2ajar's core), then short stays.
 export const CATEGORIES: { key: string; icon: LucideIcon }[] = [
+  { key: "furnished", icon: Sofa },
+  { key: "family", icon: Baby },
+  { key: "power", icon: Zap },
+  { key: "solar", icon: Sun },
+  { key: "beach", icon: Umbrella },
+  { key: "mountain", icon: Mountain },
+  { key: "pets", icon: Dog },
+  { key: "pool", icon: Waves },
   { key: "chalets", icon: Tent },
   { key: "weekend", icon: Sparkles },
   { key: "hourly", icon: Clock },
-  { key: "beach", icon: Umbrella },
-  { key: "mountain", icon: Mountain },
-  { key: "pool", icon: Waves },
-  { key: "family", icon: Baby },
-  { key: "pets", icon: Dog },
-  { key: "furnished", icon: Sofa },
-  { key: "power", icon: Zap },
-  { key: "solar", icon: Sun },
 ];
 
 export function CategoryBar() {
@@ -23,7 +24,7 @@ export function CategoryBar() {
   const locale = useLocale();
   return (
     <nav aria-label={t("categories")} className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <ul className="flex gap-6 sm:gap-8">
+      <ul className="flex gap-6 sm:justify-center sm:gap-9">
         {CATEGORIES.map(({ key, icon: Icon }) => (
           <li key={key} className="shrink-0">
             <a

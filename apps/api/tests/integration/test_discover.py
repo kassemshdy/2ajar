@@ -148,3 +148,21 @@ async def test_favorites(make_actor: Any, anon: Any) -> None:
     assert (await seeker.client.get("/api/v1/me/favorites")).json() == []
     async with get_sessionmaker()() as s:
         assert await s.scalar(select(func.count()).select_from(Listing)) == 3
+
+
+async def test_rows_per_area(make_actor: Any, anon: Any) -> None:
+    broker = await make_actor("broker", "b@example.com", org="Org")
+    hamra, faraya, verdun = [await location_id(s) for s in ("hamra", "faraya", "verdun")]
+    for price in (800, 900, 1000, 1100):
+        await published_listing(broker, price_usd=price, location_id=hamra)
+    for price in (150, 200, 250):
+        await published_listing(
+            broker, property_type="chalet", price_period="nightly", price_usd=price, location_id=faraya
+        )
+    await published_listing(broker, location_id=verdun)  # too few homes for its own row
+    rows = (await anon.client.get("/api/v1/discover")).json()["by_area"]
+    assert [(r["slug"], r["kind"], len(r["listings"])) for r in rows] == [
+        ("hamra", "homes", 4),
+        ("faraya", "stays", 3),
+    ]
+    assert rows[0]["parent_en"] == "Beirut" and rows[1]["parent_ar"] == "كسروان"
