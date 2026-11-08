@@ -1,8 +1,11 @@
 import { defineRouting } from "next-intl/routing";
 
+// Arabic is the primary language: "/" always opens /ar (no browser-language guessing); English stays one click
+// away via the language switch and at /en.
 export const routing = defineRouting({
-  locales: ["en", "ar"],
-  defaultLocale: "en",
+  locales: ["ar", "en"],
+  defaultLocale: "ar",
+  localeDetection: false,
 });
 
 export type Locale = (typeof routing.locales)[number];
