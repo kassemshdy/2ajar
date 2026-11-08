@@ -901,6 +901,64 @@
         "title": "CommentOut",
         "type": "object"
       },
+      "DiscoverOut": {
+        "additionalProperties": false,
+        "description": "Each row is empty when there is nothing honest to show (e.g. no views yet), and the UI hides it.",
+        "properties": {
+          "great_value": {
+            "items": {
+              "$ref": "#/components/schemas/ValueListing"
+            },
+            "title": "Great Value",
+            "type": "array"
+          },
+          "hours": {
+            "items": {
+              "$ref": "#/components/schemas/ListingPublic"
+            },
+            "title": "Hours",
+            "type": "array"
+          },
+          "most_viewed": {
+            "items": {
+              "$ref": "#/components/schemas/ViewedListing"
+            },
+            "title": "Most Viewed",
+            "type": "array"
+          },
+          "nights": {
+            "items": {
+              "$ref": "#/components/schemas/ListingPublic"
+            },
+            "title": "Nights",
+            "type": "array"
+          },
+          "recent": {
+            "items": {
+              "$ref": "#/components/schemas/ListingPublic"
+            },
+            "title": "Recent",
+            "type": "array"
+          },
+          "top_areas": {
+            "items": {
+              "$ref": "#/components/schemas/RankedArea"
+            },
+            "title": "Top Areas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "recent",
+          "nights",
+          "hours",
+          "most_viewed",
+          "great_value",
+          "top_areas"
+        ],
+        "title": "DiscoverOut",
+        "type": "object"
+      },
       "ElectricitySupply": {
         "description": "How the unit gets power — the #1 running-cost question in Lebanon.",
         "enum": [
@@ -912,6 +970,23 @@
         ],
         "title": "ElectricitySupply",
         "type": "string"
+      },
+      "FavoriteIds": {
+        "additionalProperties": false,
+        "properties": {
+          "listing_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Listing Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "listing_ids"
+        ],
+        "title": "FavoriteIds",
+        "type": "object"
       },
       "FloodRisk": {
         "enum": [
@@ -1424,6 +1499,19 @@
             "title": "Location Id",
             "type": "string"
           },
+          "max_guests": {
+            "anyOf": [
+              {
+                "maximum": 200,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Guests"
+          },
           "parking_spots": {
             "anyOf": [
               {
@@ -1520,7 +1608,8 @@
             "title": "Title En"
           },
           "transaction_type": {
-            "$ref": "#/components/schemas/TransactionType"
+            "$ref": "#/components/schemas/TransactionType",
+            "default": "rent"
           },
           "water_source": {
             "anyOf": [
@@ -1557,7 +1646,6 @@
           }
         },
         "required": [
-          "transaction_type",
           "property_type",
           "location_id",
           "price_usd",
@@ -2018,6 +2106,19 @@
               }
             ],
             "title": "Location Id"
+          },
+          "max_guests": {
+            "anyOf": [
+              {
+                "maximum": 200,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Guests"
           },
           "parking_spots": {
             "anyOf": [
@@ -2521,6 +2622,24 @@
         "title": "MembershipOut",
         "type": "object"
       },
+      "NearbyListing": {
+        "additionalProperties": false,
+        "properties": {
+          "distance_km": {
+            "title": "Distance Km",
+            "type": "number"
+          },
+          "listing": {
+            "$ref": "#/components/schemas/ListingPublic"
+          }
+        },
+        "required": [
+          "listing",
+          "distance_km"
+        ],
+        "title": "NearbyListing",
+        "type": "object"
+      },
       "OrgRole": {
         "enum": [
           "agency_admin",
@@ -2695,7 +2814,12 @@
         "type": "object"
       },
       "PricePeriod": {
+        "description": "2ajar is rentals of any length: from an hour (day-use chalet, pool, hall) to years.",
         "enum": [
+          "hourly",
+          "daily",
+          "nightly",
+          "weekly",
           "monthly",
           "yearly",
           "total"
@@ -2774,6 +2898,17 @@
               "things_to_know": []
             }
           },
+          "max_guests": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Guests"
+          },
           "property_type": {
             "$ref": "#/components/schemas/PropertyType"
           }
@@ -2838,6 +2973,24 @@
           "organization_name"
         ],
         "title": "PublisherOut",
+        "type": "object"
+      },
+      "RankedArea": {
+        "additionalProperties": false,
+        "properties": {
+          "area": {
+            "$ref": "#/components/schemas/AreaProfileOut"
+          },
+          "listing_count": {
+            "title": "Listing Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "area",
+          "listing_count"
+        ],
+        "title": "RankedArea",
         "type": "object"
       },
       "ReasonOut": {
@@ -2987,6 +3140,16 @@
           "septic_tank"
         ],
         "title": "Sewage",
+        "type": "string"
+      },
+      "Stay": {
+        "description": "How long people rent for; groups price periods for search and browsing.",
+        "enum": [
+          "hours",
+          "nights",
+          "months"
+        ],
+        "title": "Stay",
         "type": "string"
       },
       "Suggestion": {
@@ -3394,6 +3557,17 @@
               }
             ]
           },
+          "guests_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guests Min"
+          },
           "location_name_ar": {
             "anyOf": [
               {
@@ -3486,10 +3660,10 @@
             "title": "Sort",
             "type": "string"
           },
-          "transaction_type": {
+          "stay": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/TransactionType"
+                "$ref": "#/components/schemas/Stay"
               },
               {
                 "type": "null"
@@ -3498,7 +3672,8 @@
           }
         },
         "required": [
-          "transaction_type",
+          "stay",
+          "guests_min",
           "property_type",
           "location_slug",
           "location_name_en",
@@ -3650,6 +3825,42 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "ValueListing": {
+        "additionalProperties": false,
+        "properties": {
+          "below_area_median_pct": {
+            "title": "Below Area Median Pct",
+            "type": "integer"
+          },
+          "listing": {
+            "$ref": "#/components/schemas/ListingPublic"
+          }
+        },
+        "required": [
+          "listing",
+          "below_area_median_pct"
+        ],
+        "title": "ValueListing",
+        "type": "object"
+      },
+      "ViewedListing": {
+        "additionalProperties": false,
+        "properties": {
+          "listing": {
+            "$ref": "#/components/schemas/ListingPublic"
+          },
+          "visitors_30d": {
+            "title": "Visitors 30D",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "listing",
+          "visitors_30d"
+        ],
+        "title": "ViewedListing",
         "type": "object"
       },
       "WaterSource": {
@@ -4335,6 +4546,27 @@
         ]
       }
     },
+    "/api/v1/discover": {
+      "get": {
+        "operationId": "discover_api_v1_discover_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscoverOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Discover",
+        "tags": [
+          "discover"
+        ]
+      }
+    },
     "/api/v1/listings": {
       "get": {
         "operationId": "search_api_v1_listings_get",
@@ -4472,6 +4704,40 @@
                 }
               ],
               "title": "Property Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "stay",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Stay"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Stay"
+            }
+          },
+          {
+            "in": "query",
+            "name": "guests_min",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 200,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Guests Min"
             }
           },
           {
@@ -4652,6 +4918,93 @@
         "summary": "Import Template",
         "tags": [
           "listings"
+        ]
+      }
+    },
+    "/api/v1/listings/nearby": {
+      "get": {
+        "operationId": "nearby_api_v1_listings_nearby_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "lat",
+            "required": true,
+            "schema": {
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Lat",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lng",
+            "required": true,
+            "schema": {
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Lng",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "stay",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Stay"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Stay"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 12,
+              "maximum": 24,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NearbyListing"
+                  },
+                  "title": "Response Nearby Api V1 Listings Nearby Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Nearby",
+        "tags": [
+          "discover"
         ]
       }
     },
@@ -5095,6 +5448,65 @@
         ]
       }
     },
+    "/api/v1/listings/{listing_id}/similar": {
+      "get": {
+        "operationId": "similar_api_v1_listings__listing_id__similar_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "listing_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Listing Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 8,
+              "maximum": 12,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/NearbyListing"
+                  },
+                  "title": "Response Similar Api V1 Listings  Listing Id  Similar Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Similar",
+        "tags": [
+          "discover"
+        ]
+      }
+    },
     "/api/v1/listings/{listing_id}/view": {
       "post": {
         "operationId": "view_api_v1_listings__listing_id__view_post",
@@ -5277,6 +5689,122 @@
         "tags": [
           "tickets",
           "me"
+        ]
+      }
+    },
+    "/api/v1/me/favorites": {
+      "get": {
+        "operationId": "my_favorites_api_v1_me_favorites_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ListingPublic"
+                  },
+                  "title": "Response My Favorites Api V1 Me Favorites Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "My Favorites",
+        "tags": [
+          "discover"
+        ]
+      }
+    },
+    "/api/v1/me/favorites/ids": {
+      "get": {
+        "operationId": "my_favorite_ids_api_v1_me_favorites_ids_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteIds"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "My Favorite Ids",
+        "tags": [
+          "discover"
+        ]
+      }
+    },
+    "/api/v1/me/favorites/{listing_id}": {
+      "delete": {
+        "operationId": "remove_favorite_api_v1_me_favorites__listing_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "listing_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Listing Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Favorite",
+        "tags": [
+          "discover"
+        ]
+      },
+      "put": {
+        "operationId": "save_favorite_api_v1_me_favorites__listing_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "listing_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Listing Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save Favorite",
+        "tags": [
+          "discover"
         ]
       }
     },

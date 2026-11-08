@@ -4,6 +4,7 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import { notFound } from "next/navigation";
 import { BugReportButton } from "@/components/bug-report-button";
 import { Header } from "@/components/header";
+import { FavoritesProvider } from "@/lib/favorites";
 import { SessionProvider } from "@/lib/session";
 import { isRtl, routing } from "@/i18n/routing";
 import "../globals.css";
@@ -42,9 +43,11 @@ export default async function LocaleLayout({
       <body className="min-h-screen antialiased">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <SessionProvider>
-            <Header />
-            <main className="mx-auto w-full max-w-6xl px-4 py-6">{children}</main>
-            <BugReportButton />
+            <FavoritesProvider>
+              <Header />
+              <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6">{children}</main>
+              <BugReportButton />
+            </FavoritesProvider>
           </SessionProvider>
           <footer className="mt-12 border-t border-border py-8 text-center text-sm text-muted-foreground">
             {t("tagline")}

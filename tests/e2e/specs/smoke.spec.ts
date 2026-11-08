@@ -16,8 +16,7 @@ test("English home with search", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Find your next home");
   await expect(page.getByTestId("ask-box")).toBeVisible();
-  await page.getByText("Prefer classic filters?").click();
-  await expect(page.getByTestId("search-form")).toBeVisible();
+  await expect(page.getByTestId("category").first()).toBeVisible();
   await expectNoHorizontalScroll(page);
 });
 
@@ -34,9 +33,9 @@ test("Arabic home renders right-to-left", async ({ page }) => {
 });
 
 test("search filters narrow results and Arabic search page works", async ({ page }) => {
-  await page.goto("/en/listings?transaction_type=rent&location=beirut");
+  await page.goto("/en/listings?stay=months&location=beirut");
   await expect(page.getByTestId("results-count")).toBeVisible();
-  const cards = page.getByTestId("listing-card");
+  const cards = page.getByTestId("listing-tile");
   const count = await cards.count();
   if (count > 0) {
     await cards.first().click();

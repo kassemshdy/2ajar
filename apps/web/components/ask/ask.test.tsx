@@ -12,7 +12,7 @@ function answer(over: Partial<AskResponse> = {}): AskResponse {
   return {
     query_id: "q1",
     understood: {
-      transaction_type: "rent", property_type: null, location_slug: "hamra", location_name_en: "Hamra",
+      stay: null, guests_min: null, property_type: null, location_slug: "hamra", location_name_en: "Hamra",
       location_name_ar: "الحمرا", price_min: null, price_max: 900, bedrooms_min: 2, bathrooms_min: null,
       furnished: null, parking_spots: null, sort: "newest",
       preferences: [{ key: "quiet", label_en: "Quiet area", label_ar: "منطقة هادئة" }],
@@ -79,7 +79,7 @@ describe("Understood", () => {
     expect(screen.getByText("Quiet area")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Refine with filters" })).toHaveAttribute(
       "href",
-      "/en/listings?transaction_type=rent&location=hamra&price_max=900&bedrooms_min=2",
+      "/en/listings?location=hamra&price_max=900&bedrooms_min=2",
     );
     expect(screen.queryByTestId("ask-clarification")).not.toBeInTheDocument();
   });
@@ -101,16 +101,16 @@ describe("Understood", () => {
 
   it("builds filter links without empty values", () => {
     const u = answer().understood;
-    expect(filtersHref({ ...u, transaction_type: null, location_slug: null, price_max: null, bedrooms_min: 0 }, "ar")).toBe(
+    expect(filtersHref({ ...u, location_slug: null, price_max: null, bedrooms_min: 0 }, "ar")).toBe(
       "/ar/listings",
     );
     expect(
       filtersHref(
-        { ...u, price_min: 500, furnished: "furnished", property_type: "studio", sort: "price_asc", bedrooms_min: null },
+        { ...u, stay: "nights", guests_min: 6, price_min: 500, furnished: "furnished", property_type: "studio", sort: "price_asc", bedrooms_min: null },
         "en",
       ),
     ).toBe(
-      "/en/listings?transaction_type=rent&location=hamra&price_min=500&price_max=900&furnished=furnished&property_type=studio&sort=price_asc",
+      "/en/listings?stay=nights&guests_min=6&location=hamra&price_min=500&price_max=900&furnished=furnished&property_type=studio&sort=price_asc",
     );
   });
 });

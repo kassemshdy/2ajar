@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { emptyLiving, listing, locations } from "@/test/fixtures";
@@ -33,7 +33,7 @@ describe("ListingForm (create)", () => {
     await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith("/dashboard/listings/new-id/edit"));
     expect(JSON.parse(calls.find((c) => c.method !== "GET")!.init.body as string)).toEqual({
       transaction_type: "rent", property_type: "apartment", location_id: "a1", price_usd: 900,
-      price_period: "yearly", bedrooms: 2, bathrooms: null, area_sqm: null, floor: null, furnished: null,
+      price_period: "yearly", bedrooms: 2, bathrooms: null, area_sqm: null, floor: null, max_guests: null, furnished: null,
       amenities: ["sea_view"], title_en: "Flat", title_ar: null, description_en: null, description_ar: null,
       contact_whatsapp: "70123456",
       electricity_supply: "edl_plus_generator", generator_amps: 10, electricity_usd_month: 90,
@@ -43,19 +43,25 @@ describe("ListingForm (create)", () => {
     });
   });
 
-  it("forces a total price for sales and shows validation errors", async () => {
+  it("offers every rental length (no sales) and shows validation errors", async () => {
     const calls = mockFetch({
       "POST /api/v1/listings": () => json({ error: { code: "validation_error", message: "Invalid", details: ["Bad price"] } }, 422),
     });
     renderWithIntl(<ListingForm locations={locations} />);
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText("Sale"));
-    expect(screen.queryByLabelText("Price period")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Sale")).not.toBeInTheDocument();
+    const periods = within(screen.getByLabelText("Price period")).getAllByRole("option").map((o) => o.getAttribute("value"));
+    expect(periods).toEqual(["hourly", "daily", "nightly", "weekly", "monthly", "yearly"]);
+    await user.selectOptions(screen.getByLabelText("Property type"), "chalet");
     await user.selectOptions(screen.getByLabelText("Location"), "a1");
-    await user.type(screen.getByLabelText("Price (USD)"), "250000");
+    await user.type(screen.getByLabelText("Price (USD)"), "180");
+    await user.selectOptions(screen.getByLabelText("Price period"), "nightly");
+    await user.type(screen.getByLabelText("Maximum guests"), "6");
     await user.click(screen.getByTestId("save-listing"));
     expect(await screen.findByTestId("form-error")).toHaveTextContent("Bad price");
-    expect(JSON.parse(calls.find((c) => c.method !== "GET")!.init.body as string)).toMatchObject({ transaction_type: "sale", price_period: "total" });
+    expect(JSON.parse(calls.find((c) => c.method !== "GET")!.init.body as string)).toMatchObject({
+      transaction_type: "rent", property_type: "chalet", price_period: "nightly", max_guests: 6,
+    });
   });
 });
 

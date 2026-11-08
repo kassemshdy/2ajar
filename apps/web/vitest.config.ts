@@ -14,7 +14,7 @@ export default defineConfig({
       provider: "v8",
       include: ["lib/**/*.ts", "components/**/*.tsx"],
       // Server-only modules and async Server Components are exercised by Playwright end-to-end.
-      exclude: ["lib/api-server.ts", "components/listing-card.tsx", "components/search-filters.tsx",
+      exclude: ["lib/api-server.ts", "components/search-filters.tsx",
                 "components/demo-banner.tsx", "**/*.test.*"],
       thresholds: { lines: 85, branches: 85, functions: 85, statements: 85 },
       reporter: ["text", "html", "json-summary"],

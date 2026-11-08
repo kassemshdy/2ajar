@@ -222,6 +222,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/discover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Discover */
+        get: operations["discover_api_v1_discover_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/listings": {
         parameters: {
             query?: never;
@@ -266,6 +283,23 @@ export interface paths {
         };
         /** Import Template */
         get: operations["import_template_api_v1_listings_import_template_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/listings/nearby": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Nearby */
+        get: operations["nearby_api_v1_listings_nearby_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -411,6 +445,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/listings/{listing_id}/similar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Similar */
+        get: operations["similar_api_v1_listings__listing_id__similar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/listings/{listing_id}/view": {
         parameters: {
             query?: never;
@@ -492,6 +543,58 @@ export interface paths {
         post?: never;
         /** Revoke Token */
         delete: operations["revoke_token_api_v1_me_api_tokens__token_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/favorites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Favorites */
+        get: operations["my_favorites_api_v1_me_favorites_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/favorites/ids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Favorite Ids */
+        get: operations["my_favorite_ids_api_v1_me_favorites_ids_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/favorites/{listing_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Favorite */
+        put: operations["save_favorite_api_v1_me_favorites__listing_id__put"];
+        post?: never;
+        /** Remove Favorite */
+        delete: operations["remove_favorite_api_v1_me_favorites__listing_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -949,11 +1052,34 @@ export interface components {
             via: string;
         };
         /**
+         * DiscoverOut
+         * @description Each row is empty when there is nothing honest to show (e.g. no views yet), and the UI hides it.
+         */
+        DiscoverOut: {
+            /** Great Value */
+            great_value: components["schemas"]["ValueListing"][];
+            /** Hours */
+            hours: components["schemas"]["ListingPublic"][];
+            /** Most Viewed */
+            most_viewed: components["schemas"]["ViewedListing"][];
+            /** Nights */
+            nights: components["schemas"]["ListingPublic"][];
+            /** Recent */
+            recent: components["schemas"]["ListingPublic"][];
+            /** Top Areas */
+            top_areas: components["schemas"]["RankedArea"][];
+        };
+        /**
          * ElectricitySupply
          * @description How the unit gets power — the #1 running-cost question in Lebanon.
          * @enum {string}
          */
         ElectricitySupply: "edl_only" | "edl_plus_generator" | "generator_24_7" | "solar" | "solar_battery";
+        /** FavoriteIds */
+        FavoriteIds: {
+            /** Listing Ids */
+            listing_ids: string[];
+        };
         /**
          * FloodRisk
          * @enum {string}
@@ -1113,6 +1239,8 @@ export interface components {
              * Format: uuid
              */
             location_id: string;
+            /** Max Guests */
+            max_guests?: number | null;
             /** Parking Spots */
             parking_spots?: number | null;
             price_period: components["schemas"]["PricePeriod"];
@@ -1129,6 +1257,7 @@ export interface components {
             title_ar?: string | null;
             /** Title En */
             title_en?: string | null;
+            /** @default rent */
             transaction_type: components["schemas"]["TransactionType"];
             water_source?: components["schemas"]["WaterSource"] | null;
             /** Water Usd Month */
@@ -1251,6 +1380,8 @@ export interface components {
             highlights?: string[] | null;
             /** Location Id */
             location_id?: string | null;
+            /** Max Guests */
+            max_guests?: number | null;
             /** Parking Spots */
             parking_spots?: number | null;
             price_period?: components["schemas"]["PricePeriod"] | null;
@@ -1383,6 +1514,12 @@ export interface components {
             organization_name: string;
             role: components["schemas"]["OrgRole"];
         };
+        /** NearbyListing */
+        NearbyListing: {
+            /** Distance Km */
+            distance_km: number;
+            listing: components["schemas"]["ListingPublic"];
+        };
         /**
          * OrgRole
          * @enum {string}
@@ -1449,9 +1586,10 @@ export interface components {
         };
         /**
          * PricePeriod
+         * @description 2ajar is rentals of any length: from an hour (day-use chalet, pool, hall) to years.
          * @enum {string}
          */
-        PricePeriod: "monthly" | "yearly" | "total";
+        PricePeriod: "hourly" | "daily" | "nightly" | "weekly" | "monthly" | "yearly" | "total";
         /** PropertyOut */
         PropertyOut: {
             /** Amenities */
@@ -1472,6 +1610,8 @@ export interface components {
              *     }
              */
             living: components["schemas"]["LivingFactorsOut"];
+            /** Max Guests */
+            max_guests?: number | null;
             property_type: components["schemas"]["PropertyType"];
         };
         /**
@@ -1490,6 +1630,12 @@ export interface components {
              * @enum {string}
              */
             type: "broker" | "owner";
+        };
+        /** RankedArea */
+        RankedArea: {
+            area: components["schemas"]["AreaProfileOut"];
+            /** Listing Count */
+            listing_count: number;
         };
         /** ReasonOut */
         ReasonOut: {
@@ -1551,6 +1697,12 @@ export interface components {
          * @enum {string}
          */
         Sewage: "public_network" | "septic_tank";
+        /**
+         * Stay
+         * @description How long people rent for; groups price periods for search and browsing.
+         * @enum {string}
+         */
+        Stay: "hours" | "nights" | "months";
         /**
          * Suggestion
          * @description A predefined example prompt shown as a chip under the search box.
@@ -1693,6 +1845,8 @@ export interface components {
             /** Bedrooms Min */
             bedrooms_min: number | null;
             furnished: components["schemas"]["Furnished"] | null;
+            /** Guests Min */
+            guests_min: number | null;
             /** Location Name Ar */
             location_name_ar: string | null;
             /** Location Name En */
@@ -1713,7 +1867,7 @@ export interface components {
              * @enum {string}
              */
             sort: "newest" | "price_asc" | "price_desc";
-            transaction_type: components["schemas"]["TransactionType"] | null;
+            stay: components["schemas"]["Stay"] | null;
         };
         /** UnderstoodPreference */
         UnderstoodPreference: {
@@ -1765,6 +1919,18 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** ValueListing */
+        ValueListing: {
+            /** Below Area Median Pct */
+            below_area_median_pct: number;
+            listing: components["schemas"]["ListingPublic"];
+        };
+        /** ViewedListing */
+        ViewedListing: {
+            listing: components["schemas"]["ListingPublic"];
+            /** Visitors 30D */
+            visitors_30d: number;
         };
         /**
          * WaterSource
@@ -2185,6 +2351,26 @@ export interface operations {
             };
         };
     };
+    discover_api_v1_discover_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscoverOut"];
+                };
+            };
+        };
+    };
     search_api_v1_listings_get: {
         parameters: {
             query?: {
@@ -2196,6 +2382,8 @@ export interface operations {
                 bathrooms_min?: number | null;
                 furnished?: components["schemas"]["Furnished"] | null;
                 property_type?: components["schemas"]["PropertyType"] | null;
+                stay?: components["schemas"]["Stay"] | null;
+                guests_min?: number | null;
                 sort?: "newest" | "price_asc" | "price_desc";
                 page?: number;
                 page_size?: number;
@@ -2310,6 +2498,40 @@ export interface operations {
                 };
                 content: {
                     "text/plain": string;
+                };
+            };
+        };
+    };
+    nearby_api_v1_listings_nearby_get: {
+        parameters: {
+            query: {
+                lat: number;
+                lng: number;
+                stay?: components["schemas"]["Stay"] | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NearbyListing"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2606,6 +2828,39 @@ export interface operations {
             };
         };
     };
+    similar_api_v1_listings__listing_id__similar_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                listing_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NearbyListing"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     view_api_v1_listings__listing_id__view_post: {
         parameters: {
             query?: never;
@@ -2734,6 +2989,104 @@ export interface operations {
             header?: never;
             path: {
                 token_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_favorites_api_v1_me_favorites_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingPublic"][];
+                };
+            };
+        };
+    };
+    my_favorite_ids_api_v1_me_favorites_ids_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FavoriteIds"];
+                };
+            };
+        };
+    };
+    save_favorite_api_v1_me_favorites__listing_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_favorite_api_v1_me_favorites__listing_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing_id: string;
             };
             cookie?: never;
         };

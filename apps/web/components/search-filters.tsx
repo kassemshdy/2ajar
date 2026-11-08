@@ -6,7 +6,15 @@ import { Field, Input, Select } from "./ui/input";
 
 export type SearchState = Partial<
   Record<
-    "transaction_type" | "location" | "price_min" | "price_max" | "bedrooms_min" | "furnished" | "property_type" | "sort",
+    | "stay"
+    | "guests_min"
+    | "location"
+    | "price_min"
+    | "price_max"
+    | "bedrooms_min"
+    | "furnished"
+    | "property_type"
+    | "sort",
     string
   >
 >;
@@ -25,7 +33,8 @@ export async function SearchFilters({
   const t = await getTranslations("filters");
   const te = await getTranslations("enums");
   const locale = await getLocale();
-  const tx = state.transaction_type ?? "rent";
+  const tStay = await getTranslations("stay");
+  const stay = state.stay ?? "";
 
   return (
     <form
@@ -35,14 +44,15 @@ export async function SearchFilters({
       role="search"
       data-testid="search-form"
     >
-      <fieldset className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
-        {(["rent", "sale"] as const).map((v) => (
+      <fieldset className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1 sm:grid-cols-4">
+        <legend className="sr-only">{t("stay")}</legend>
+        {(["", "hours", "nights", "months"] as const).map((v) => (
           <label
-            key={v}
-            className="cursor-pointer rounded-md px-3 py-2 text-center text-sm font-medium has-[:checked]:bg-background has-[:checked]:shadow-sm"
+            key={v || "any"}
+            className="cursor-pointer rounded-lg px-2 py-2 text-center text-xs font-medium has-[:checked]:bg-background has-[:checked]:shadow-sm sm:text-sm"
           >
-            <input type="radio" name="transaction_type" value={v} defaultChecked={tx === v} className="sr-only" />
-            {t(v)}
+            <input type="radio" name="stay" value={v} defaultChecked={stay === v} className="sr-only" />
+            {tStay(v || "any")}
           </label>
         ))}
       </fieldset>
@@ -58,6 +68,16 @@ export async function SearchFilters({
         </Field>
         <Field label={t("priceMax")} htmlFor="f-pmax">
           <Input id="f-pmax" name="price_max" type="number" min={0} inputMode="numeric" defaultValue={state.price_max} />
+        </Field>
+        <Field label={t("guests")} htmlFor="f-guests">
+          <Select id="f-guests" name="guests_min" defaultValue={state.guests_min ?? ""}>
+            <option value="">{t("any")}</option>
+            {[2, 4, 6, 8, 10, 15, 20].map((n) => (
+              <option key={n} value={n}>
+                {n}+
+              </option>
+            ))}
+          </Select>
         </Field>
         <Field label={t("bedrooms")} htmlFor="f-beds">
           <Select id="f-beds" name="bedrooms_min" defaultValue={state.bedrooms_min ?? ""}>

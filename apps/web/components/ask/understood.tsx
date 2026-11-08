@@ -8,7 +8,8 @@ export function filtersHref(u: AskResponse["understood"], locale: string): strin
   const set = (k: string, v: string | number | null | undefined) => {
     if (v !== null && v !== undefined && v !== "") params.set(k, String(v));
   };
-  set("transaction_type", u.transaction_type);
+  set("stay", u.stay);
+  set("guests_min", u.guests_min);
   set("location", u.location_slug);
   set("price_min", u.price_min);
   set("price_max", u.price_max);

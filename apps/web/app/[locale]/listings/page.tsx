@@ -1,7 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { ListingPage } from "@2ajar/contracts";
 import { DemoBanner } from "@/components/demo-banner";
-import { ListingCard } from "@/components/listing-card";
+import { ListingTile } from "@/components/listing-tile";
 import { SearchFilters, type SearchState } from "@/components/search-filters";
 import { Card } from "@/components/ui/card";
 import { apiGet, getLocations, getPublicConfig } from "@/lib/api-server";
@@ -9,7 +9,7 @@ import { apiGet, getLocations, getPublicConfig } from "@/lib/api-server";
 export const dynamic = "force-dynamic";
 
 const KEYS = [
-  "transaction_type", "location", "price_min", "price_max", "bedrooms_min", "furnished", "property_type", "sort",
+  "stay", "guests_min", "location", "price_min", "price_max", "bedrooms_min", "furnished", "property_type", "sort",
 ] as const;
 const PAGE_SIZE = 12;
 
@@ -33,10 +33,6 @@ export default async function ListingsPage({
       state[key] = v;
       query.set(key, v);
     }
-  }
-  if (!state.transaction_type) {
-    state.transaction_type = "rent";
-    query.set("transaction_type", "rent");
   }
   const page = Math.max(1, Number(sp.page) || 1);
   query.set("page", String(page));
@@ -72,9 +68,9 @@ export default async function ListingsPage({
           {total === 0 ? (
             <p className="text-muted-foreground">{t("empty")}</p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 xl:grid-cols-3">
               {results!.items.map((l) => (
-                <ListingCard key={l.id} listing={l} />
+                <ListingTile key={l.id} listing={l} />
               ))}
             </div>
           )}
