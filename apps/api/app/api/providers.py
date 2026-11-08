@@ -16,6 +16,7 @@ from app.search.engine import SmartSearch
 from app.services.api_tokens import ApiTokenService
 from app.services.areas import AreaProfileService
 from app.services.auth import AccountService, TokenService
+from app.services.discovery import DiscoveryService
 from app.services.import_csv import ListingImporter
 from app.services.leads import LeadService
 from app.services.listings import ContactService, ListingMediaService, ListingService
@@ -115,3 +116,12 @@ def get_smart_search(session: SessionDep, listings: ListingServiceDep, areas: Ar
 
 
 SmartSearchDep = Annotated[SmartSearch, Depends(get_smart_search)]
+
+
+def get_discovery(
+    session: SessionDep, settings: SettingsDep, listings: ListingServiceDep
+) -> DiscoveryService:
+    return DiscoveryService(session, settings=settings, listings=listings)
+
+
+DiscoveryDep = Annotated[DiscoveryService, Depends(get_discovery)]

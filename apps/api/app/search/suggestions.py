@@ -29,8 +29,13 @@ SUGGESTIONS: tuple[Suggestion, ...] = (
         text_ar="بيت مع حديقة ويسمح بالحيوانات في كسروان",
     ),
     Suggestion(
-        id="sea-view-sale",
-        text_en="Sea view apartment for sale in Beirut",
-        text_ar="شقة مطلة على البحر للبيع في بيروت",
+        id="chalet-weekend",
+        text_en="Chalet in Faraya for the weekend for 6 guests with a fireplace, under $250 a night",
+        text_ar="شاليه في فاريا لعطلة نهاية الأسبوع لـ6 أشخاص، حتى 250$ بالليلة",
+    ),
+    Suggestion(
+        id="pool-by-the-hour",
+        text_en="Chalet with a private pool in Jiyeh by the hour for 10 people",
+        text_ar="شاليه مع مسبح خاص في الجية بالساعة لـ10 أشخاص",
     ),
 )

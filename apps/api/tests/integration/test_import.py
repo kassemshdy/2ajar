@@ -62,7 +62,8 @@ async def test_dry_run_then_import(make_actor: Any, notifications: Any) -> None:
     assert [x["row"] for x in rows] == list(range(2, 10))
     assert rows[3]["errors"] == ["Unknown location 'atlantis'"]
     assert "price_usd must be a whole number" in rows[4]["errors"]
-    assert "transaction_type is required" in rows[5]["errors"]
+    assert any("rentals only" in e for e in rows[2]["errors"])  # 2ajar is rentals only
+    assert rows[5]["errors"] == []  # transaction_type is optional and defaults to rent
     assert any("amenities" in e for e in rows[6]["errors"])
     assert rows[7]["errors"] == ["Invalid WhatsApp number"]
     async with get_sessionmaker()() as s:
@@ -76,8 +77,8 @@ async def test_dry_run_then_import(make_actor: Any, notifications: Any) -> None:
     mine = (await broker.client.get("/api/v1/me/listings")).json()
     assert {x["id"] for x in mine} == set(ids)
     assert all(x["status"] == "draft" for x in mine)
-    sale = next(x for x in mine if x["title"]["ar"] == "شقة عربية")
-    assert sale["transaction_type"] == "sale" and sale["price_period"] == "total"
+    defaulted = next(x for x in mine if x["title"]["en"] == "Missing tx")
+    assert defaulted["transaction_type"] == "rent" and defaulted["price_period"] == "monthly"
     assert next(x for x in mine if x["title"]["en"] == "Hamra flat")["price_usd"] == 1500
     async with get_sessionmaker()() as s:
         assert "listing.import" in (await s.scalars(select(AuditLog.action))).all()

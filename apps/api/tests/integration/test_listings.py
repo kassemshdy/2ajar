@@ -7,6 +7,7 @@ from sqlalchemy import select, update
 from app.core.security import utcnow
 from app.db.session import get_sessionmaker
 from app.models import AuditLog, Listing, ListingEvent
+from app.models.enums import PricePeriod, TransactionType
 from tests.conftest import create_listing, jpeg_bytes, location_id, published_listing, upload_photo
 
 
@@ -136,12 +137,14 @@ async def test_update_validation(make_actor: Any) -> None:
     lid = listing["id"]
     assert listing["publisher"]["type"] == "owner"
     r = await owner.client.patch(f"/api/v1/listings/{lid}", json={"transaction_type": "sale"})
-    assert r.status_code == 422, "sale requires total price period"
+    assert r.status_code == 422 and "rentals only" in r.text
+    r = await owner.client.patch(f"/api/v1/listings/{lid}", json={"price_period": "total"})
+    assert r.status_code == 422
     r = await owner.client.patch(
-        f"/api/v1/listings/{lid}",
-        json={"transaction_type": "sale", "price_period": "total", "price_usd": 250000},
+        f"/api/v1/listings/{lid}", json={"price_period": "nightly", "price_usd": 150, "max_guests": 6}
     )
-    assert r.status_code == 200 and r.json()["transaction_type"] == "sale"
+    body = r.json()
+    assert r.status_code == 200 and body["price_period"] == "nightly" and body["property"]["max_guests"] == 6
     r = await owner.client.patch(f"/api/v1/listings/{lid}", json={"contact_whatsapp": "abc"})
     assert r.status_code == 422
     r = await owner.client.patch(
@@ -162,29 +165,44 @@ async def test_search_filters(make_actor: Any, anon: Any) -> None:
     await published_listing(broker, price_usd=700, bedrooms=2, location_id=await location_id("jounieh"))
     await published_listing(
         broker,
-        transaction_type="sale",
-        price_period="total",
-        price_usd=300000,
+        property_type="chalet",
+        price_period="nightly",
+        price_usd=150,
         bedrooms=3,
+        max_guests=8,
         location_id=await location_id("dbayeh"),
     )
+    legacy = await published_listing(broker, price_usd=999, location_id=await location_id("dbayeh"))
+    async with get_sessionmaker()() as s:  # a sale listing from before 2ajar became rentals-only
+        await s.execute(
+            update(Listing)
+            .where(Listing.id == legacy["id"])
+            .values(transaction_type=TransactionType.sale, price_period=PricePeriod.total)
+        )
+        await s.commit()
+    assert (await anon.client.get(f"/api/v1/listings/{legacy['id']}")).status_code == 404
 
     async def search(**params: Any) -> list[int]:
         r = await anon.client.get("/api/v1/listings", params=params)
         assert r.status_code == 200, r.text
         return [x["price_usd"] for x in r.json()["items"]]
 
-    assert sorted(await search()) == [700, 800, 1500, 300000]
+    assert sorted(await search()) == [150, 700, 800, 1500]
     assert sorted(await search(location="beirut")) == [800, 1500]
-    assert sorted(await search(location="mount-lebanon")) == [700, 300000]
+    assert sorted(await search(location="mount-lebanon")) == [150, 700]
     assert await search(location="keserwan") == [700]
     assert await search(location="no-such-place") == []
-    assert sorted(await search(transaction_type="rent", price_max=1000)) == [700, 800]
-    assert await search(transaction_type="rent", bedrooms_min=3) == [1500]
-    assert await search(transaction_type="sale") == [300000]
+    assert sorted(await search(stay="months", price_max=1000)) == [700, 800]
+    assert sorted(await search(bedrooms_min=3)) == [150, 1500]
+    assert await search(transaction_type="sale") == []
+    assert await search(stay="nights") == [150]
+    assert sorted(await search(stay="months")) == [700, 800, 1500]
+    assert await search(stay="hours") == []
+    assert await search(guests_min=6) == [150]
+    assert await search(guests_min=9) == []
     assert await search(furnished="unfurnished") == [800]
-    assert await search(transaction_type="rent", sort="price_asc") == [700, 800, 1500]
-    assert await search(transaction_type="rent", sort="price_desc") == [1500, 800, 700]
+    assert await search(sort="price_asc") == [150, 700, 800, 1500]
+    assert await search(stay="months", sort="price_desc") == [1500, 800, 700]
     r = await anon.client.get("/api/v1/listings", params={"page_size": 2, "page": 2, "sort": "price_asc"})
     assert r.json()["total"] == 4 and len(r.json()["items"]) == 2
     assert (await anon.client.get("/api/v1/listings", params={"page_size": 500})).status_code == 422

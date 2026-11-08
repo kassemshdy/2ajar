@@ -11,6 +11,7 @@ from sqlalchemy import (
     Index,
     Integer,
     Numeric,
+    SmallInteger,
     String,
     Text,
     false,
@@ -41,6 +42,9 @@ class Property(UUIDPk, Timestamps, Base):
     """The physical unit. Advertisements live in `listings`."""
 
     __tablename__ = "properties"
+    __table_args__ = (
+        CheckConstraint("max_guests IS NULL OR max_guests BETWEEN 1 AND 200", name="max_guests_range"),
+    )
 
     owner_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), index=True)
     organization_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("organizations.id"), index=True)
@@ -50,6 +54,7 @@ class Property(UUIDPk, Timestamps, Base):
     bathrooms: Mapped[int | None] = mapped_column(Integer)
     area_sqm: Mapped[int | None] = mapped_column(Integer)
     floor: Mapped[int | None] = mapped_column(Integer)
+    max_guests: Mapped[int | None] = mapped_column(SmallInteger)
     furnished: Mapped[Furnished | None] = mapped_column(enum_type(Furnished, "furnished"))
     amenities: Mapped[list[str]] = mapped_column(JSONB, default=list, server_default="[]")
     lat: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))

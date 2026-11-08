@@ -101,6 +101,16 @@ LOCATIONS: list[LocationSpec] = [
                 ("zouk-mosbeh", "Zouk Mosbeh", "ذوق مصبح", 33.9550, 35.6050, []),
                 ("kaslik", "Kaslik", "الكسليك", 33.9730, 35.6160, []),
                 ("adma", "Adma", "أدما", 33.9980, 35.6400, []),
+                ("faraya", "Faraya", "فاريا", 34.0022, 35.8285, []),
+                ("faqra", "Faqra", "فقرا", 34.0001, 35.8160, []),
+                ("kfardebian", "Kfardebian", "كفرذبيان", 33.9897, 35.7633, []),
+            ]),
+            ("jbeil-district", "Jbeil District", "قضاء جبيل", None, None, [
+                ("byblos", "Byblos", "جبيل", 34.1230, 35.6519, []),
+                ("laqlouq", "Laqlouq", "اللقلوق", 34.1350, 35.8580, []),
+            ]),
+            ("chouf", "Chouf", "الشوف", None, None, [
+                ("jiyeh", "Jiyeh", "الجية", 33.6500, 35.4200, []),
             ]),
             ("aley-district", "Aley District", "قضاء عاليه", None, None, [
                 ("aley", "Aley", "عاليه", 33.8080, 35.6000, []),
@@ -108,6 +118,11 @@ LOCATIONS: list[LocationSpec] = [
             ]),
         ],
     ),
+    ("north", "North Lebanon", "الشمال", None, None, [
+        ("batroun-district", "Batroun District", "قضاء البترون", None, None, [
+            ("batroun", "Batroun", "البترون", 34.2553, 35.6581, []),
+        ]),
+    ]),
 ]  # fmt: skip
 
 LEVELS = [LocationLevel.governorate, LocationLevel.district, LocationLevel.area]
@@ -275,11 +290,10 @@ async def seed_demo(session: AsyncSession, count: int = 30) -> int:
         area_sqm = {0: rng.randint(35, 60)}.get(bedrooms, 45 + bedrooms * rng.randint(35, 55))
         furnished = rng.choice(list(Furnished))
         amenities = sorted(rng.sample(amenity_pool, rng.randint(2, 5)), key=amenity_pool.index)
-        is_sale = i % 7 == 6
         lo, hi = AREA_PRICE[loc.slug]
         factor = (0.6 + 0.25 * bedrooms) * (1.15 if furnished == Furnished.furnished else 1.0)
         monthly = int(round(rng.uniform(lo, hi) * factor / 50) * 50)
-        price = int(round(monthly * rng.uniform(170, 230) / 1000) * 1000) if is_sale else max(monthly, 300)
+        price = max(monthly, 300)
 
         if i % 3 == 2:
             creator, org_id = owners[i % 2], None
@@ -321,9 +335,9 @@ async def seed_demo(session: AsyncSession, count: int = 30) -> int:
             property_id=prop.id,
             created_by_user_id=creator.id,
             organization_id=org_id,
-            transaction_type=TransactionType.sale if is_sale else TransactionType.rent,
+            transaction_type=TransactionType.rent,
             price_usd_cents=price * 100,
-            price_period=PricePeriod.total if is_sale else PricePeriod.monthly,
+            price_period=PricePeriod.monthly,
             status=ListingStatus.published,
             title_en=title_en,
             title_ar=title_ar,
@@ -347,6 +361,92 @@ async def seed_demo(session: AsyncSession, count: int = 30) -> int:
     if os.environ.get("SEED_DEMO_PASSWORD"):
         print(f"Demo accounts use SEED_DEMO_PASSWORD (e.g. rami.broker@{DEMO_DOMAIN})")
     return count
+
+
+# Chalets and day-use places: (area slug, type, EN name, AR name, period, (min, max) USD, guests range)
+SHORT_STAYS: list[tuple[str, PropertyType, str, str, PricePeriod, tuple[int, int], tuple[int, int]]] = [
+    ("faraya", PropertyType.chalet, "Ski chalet", "شاليه تزلج", PricePeriod.nightly, (120, 280), (4, 8)),
+    ("faqra", PropertyType.chalet, "Mountain chalet with fireplace", "شاليه جبلي مع موقدة", PricePeriod.nightly, (150, 350), (4, 10)),
+    ("kfardebian", PropertyType.chalet, "Cosy A-frame chalet", "شاليه دافئ", PricePeriod.nightly, (90, 180), (2, 6)),
+    ("laqlouq", PropertyType.chalet, "Forest cabin", "كوخ في الغابة", PricePeriod.weekly, (500, 900), (2, 6)),
+    ("batroun", PropertyType.chalet, "Beach chalet", "شاليه على البحر", PricePeriod.nightly, (110, 260), (2, 6)),
+    ("byblos", PropertyType.apartment, "Old-souk holiday flat", "شقة عطلات قرب السوق القديم", PricePeriod.nightly, (70, 140), (2, 4)),
+    ("jiyeh", PropertyType.chalet, "Seafront chalet", "شاليه على الواجهة البحرية", PricePeriod.nightly, (100, 220), (4, 8)),
+    ("jiyeh", PropertyType.chalet, "Day-use chalet with private pool", "شاليه نهاري مع مسبح خاص", PricePeriod.hourly, (20, 45), (6, 15)),
+    ("batroun", PropertyType.house, "Garden & pool for the day", "حديقة ومسبح ليوم", PricePeriod.daily, (120, 250), (8, 20)),
+    ("jounieh", PropertyType.office, "Meeting room by the hour", "قاعة اجتماعات بالساعة", PricePeriod.hourly, (10, 25), (4, 12)),
+]  # fmt: skip
+PERIOD_LABEL = {
+    PricePeriod.hourly: ("per hour", "بالساعة"),
+    PricePeriod.daily: ("per day", "باليوم"),
+    PricePeriod.nightly: ("per night", "بالليلة"),
+    PricePeriod.weekly: ("per week", "بالأسبوع"),
+}
+
+
+async def seed_demo_short_stays(session: AsyncSession) -> int:
+    """Demo chalets and day-use places (per hour / day / night / week). Idempotent; needs the demo accounts."""
+    short = (PricePeriod.hourly, PricePeriod.daily, PricePeriod.nightly, PricePeriod.weekly)
+    exists = select(Listing.id).where(Listing.is_demo.is_(True), Listing.price_period.in_(short)).limit(1)
+    if await session.scalar(exists):
+        return 0
+    hosts = list(
+        (await session.scalars(select(User).where(User.is_demo.is_(True)).order_by(User.email))).all()
+    )
+    if not hosts:
+        return 0
+    slugs = {s[0] for s in SHORT_STAYS}
+    areas = {
+        x.slug: x for x in (await session.scalars(select(Location).where(Location.slug.in_(slugs)))).all()
+    }
+    storage = get_storage()
+    now = utcnow()
+    rng = random.Random(1961)
+    created = 0
+    for i, (slug, ptype, name_en, name_ar, period, (lo, hi), (g_lo, g_hi)) in enumerate(SHORT_STAYS):
+        loc = areas.get(slug)
+        if loc is None:
+            continue
+        host = hosts[i % len(hosts)]
+        member = await session.scalar(select(OrganizationMember).where(OrganizationMember.user_id == host.id))
+        guests = rng.randint(g_lo, g_hi)
+        bedrooms = None if ptype == PropertyType.office else max(1, guests // 2 - rng.randint(0, 1))
+        amenities = [Amenity.parking.value, Amenity.generator_24_7.value]
+        amenities += rng.sample(
+            [Amenity.pool.value, Amenity.mountain_view.value, Amenity.sea_view.value, Amenity.garden.value,
+             Amenity.terrace.value, Amenity.pets_allowed.value], 2
+        )  # fmt: skip
+        price = int(round(rng.randint(lo, hi) / 5) * 5)
+        per_en, per_ar = PERIOD_LABEL[period]
+        prop = Property(
+            owner_user_id=host.id, organization_id=member.organization_id if member else None,
+            location_id=loc.id, property_type=ptype, bedrooms=bedrooms, bathrooms=1 if bedrooms else None,
+            area_sqm=rng.randint(60, 220), max_guests=guests, furnished=Furnished.furnished,
+            amenities=amenities, lat=loc.lat, lng=loc.lng, is_demo=True,
+        )  # fmt: skip
+        session.add(prop)
+        await session.flush()
+        published_at = now - timedelta(days=rng.randint(0, 10), hours=rng.randint(0, 23))
+        listing = Listing(
+            property_id=prop.id, created_by_user_id=host.id, organization_id=prop.organization_id,
+            transaction_type=TransactionType.rent, price_usd_cents=price * 100, price_period=period,
+            status=ListingStatus.published, title_en=f"{name_en} in {loc.name_en}",
+            title_ar=f"{name_ar} في {loc.name_ar}",
+            description_en=f"[DEMO LISTING - not a real property] Up to {guests} guests, ${price} {per_en}.",
+            description_ar=f"[إعلان تجريبي - ليس عقاراً حقيقياً] حتى {guests} ضيوف، {price}$ {per_ar}.",
+            contact_whatsapp_e164=host.phone_e164, published_at=published_at, last_confirmed_at=published_at,
+            expires_at=published_at + timedelta(days=get_settings().listing_ttl_days), is_demo=True,
+        )  # fmt: skip
+        session.add(listing)
+        await session.flush()
+        data = _placeholder_image(rng, loc.name_en)
+        key = f"listings/{listing.id}/demo-0.webp"
+        await storage.put(key, data, "image/webp")
+        session.add(ListingMedia(listing_id=listing.id, storage_key=key, content_type="image/webp",
+                                 width=1200, height=800, byte_size=len(data), position=0))  # fmt: skip
+        created += 1
+    await session.commit()
+    return created
 
 
 DEMO_AREA_NOTE = "Synthetic demo values, not real statistics"
@@ -413,7 +513,8 @@ async def seed_demo_living(session: AsyncSession) -> int:
 async def seed_demo_areas(session: AsyncSession) -> int:
     """Create clearly-marked demo area profiles for demo areas that have no profile (never overwrites)."""
     existing = set((await session.scalars(select(AreaProfile.location_id))).all())
-    areas = (await session.scalars(select(Location).where(Location.slug.in_(AREA_PRICE)))).all()
+    slugs = {*AREA_PRICE, *(s[0] for s in SHORT_STAYS)}
+    areas = (await session.scalars(select(Location).where(Location.slug.in_(slugs)))).all()
     created = 0
     for loc in areas:
         if loc.id in existing:
@@ -483,6 +584,7 @@ async def main(demo: bool = False, purge: bool = False) -> int:
         if demo:
             n = await seed_demo(session)
             print(f"demo listings created: {n} (is_demo=true; visible only when DEMO_MODE=true)")
+            print(f"demo short stays created: {await seed_demo_short_stays(session)}")
             print(f"demo living factors filled: {await seed_demo_living(session)}")
             print(f"demo area profiles created: {await seed_demo_areas(session)}")
     return 0

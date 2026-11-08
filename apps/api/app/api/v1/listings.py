@@ -19,7 +19,7 @@ from app.api.providers import (
     MediaServiceDep,
 )
 from app.core.ratelimit import rate_limit
-from app.models.enums import Furnished, PropertyType, TransactionType
+from app.models.enums import Furnished, PropertyType, Stay, TransactionType
 from app.repositories.listings import SearchCriteria
 from app.schemas.common import Page
 from app.schemas.lead import LeadCreate, LeadReceipt
@@ -52,6 +52,8 @@ async def search(
     bathrooms_min: Annotated[int | None, Query(ge=0, le=20)] = None,
     furnished: Furnished | None = None,
     property_type: PropertyType | None = None,
+    stay: Stay | None = None,
+    guests_min: Annotated[int | None, Query(ge=1, le=200)] = None,
     sort: Literal["newest", "price_asc", "price_desc"] = "newest",
     page: Annotated[int, Query(ge=1, le=1000)] = 1,
     page_size: Annotated[int, Query(ge=1, le=50)] = 20,
@@ -64,6 +66,8 @@ async def search(
         bathrooms_min=bathrooms_min,
         furnished=furnished,
         property_type=property_type,
+        stay=stay,
+        guests_min=guests_min,
         sort=sort,
         page=page,
         page_size=page_size,

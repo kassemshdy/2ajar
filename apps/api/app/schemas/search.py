@@ -5,7 +5,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from app.models.enums import Furnished, PropertyType, TransactionType
+from app.models.enums import Furnished, PropertyType, Stay
 from app.schemas.common import APIModel
 from app.schemas.listing import ListingPublic
 
@@ -26,7 +26,8 @@ class UnderstoodPreference(APIModel):
 class Understood(APIModel):
     """What the parser extracted. The web turns these into editable filter chips."""
 
-    transaction_type: TransactionType | None
+    stay: Stay | None
+    guests_min: int | None
     property_type: PropertyType | None
     location_slug: str | None
     location_name_en: str | None

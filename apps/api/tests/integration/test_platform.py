@@ -117,8 +117,17 @@ async def test_seed_demo_and_purge(settings: Any, monkeypatch: Any, capsys: Any)
 
     assert await seed.main(demo=True) == 0
     async with get_sessionmaker()() as s:
-        assert await s.scalar(select(func.count()).select_from(Listing).where(Listing.is_demo)) == 30
-        assert await s.scalar(select(func.count()).select_from(ListingMedia)) == 30
+        # 30 homes rented by the month + 10 chalets / day-use places; no sales (rentals only)
+        assert await s.scalar(select(func.count()).select_from(Listing).where(Listing.is_demo)) == 40
+        assert await s.scalar(select(func.count()).select_from(ListingMedia)) == 40
+        periods = (await s.scalars(select(Listing.price_period).distinct())).all()
+        assert {p.value for p in periods} == {"hourly", "daily", "nightly", "weekly", "monthly"}
+        assert (
+            await s.scalar(
+                select(func.count()).select_from(Listing).where(Listing.transaction_type == "sale")
+            )
+            == 0
+        )
         assert await s.scalar(select(func.count()).select_from(Organization).where(Organization.is_demo)) == 2
         demo_users = (await s.scalars(select(User.email).where(User.is_demo))).all()
         assert all(e.endswith("@demo.2ajar.invalid") for e in demo_users)

@@ -9,14 +9,21 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from app.models.enums import Furnished, PropertyType, TransactionType
+from app.models.enums import Furnished, PropertyType, Stay
 from app.repositories.locations import LocationRecord, LocationSnapshot
 from app.search import vocabulary as V
 from app.search.preferences import PREFERENCES, Preference
 from app.search.text import consume_phrase, contains_phrase, is_arabic, normalize
 
 SortHint = Literal["newest", "price_asc", "price_desc"]
-RENT_INFERENCE_CEILING = 15_000  # USD; any budget below this is a monthly rent in Lebanon, not a sale price
+_GUESTS = re.compile(
+    r"(?:for\s+)?(\d{1,3})\s*(?:guests?|people|persons?|pax|adults|visitors|ضيوف|ضيف|اشخاص|شخص|نفر|انفار|ashkhas)\b"
+)
+_COUNTED_STAY = (
+    (Stay.hours, re.compile(r"\b\d{1,2}\s*(?:hours?|hrs?|ساعات|ساعه)\b(?!\s*(?:electricity|power|كهرباء))")),
+    (Stay.nights, re.compile(r"\b\d{1,2}\s*(?:nights?|ليالي|ليال|ليله)\b")),
+    (Stay.months, re.compile(r"\b\d{1,2}\s*(?:months?|years?|اشهر|شهور|سنوات|سنين)\b")),
+)
 
 _NUM = r"(\d+(?:[.,]\d+)?)\s*(k|الف|alf)?"
 _CHEAP = ("cheap", "cheapest", "affordable", "budget friendly", "low price", "رخيص", "رخيصه", "ارخص", "rkhis")
@@ -27,8 +34,9 @@ _LUXURY = ("luxury", "luxurious", "high end", "premium", "فخم", "فخمه", "
 class ParsedQuery:
     text: str
     language: Literal["en", "ar"]
-    transaction: TransactionType | None = None
-    transaction_inferred: bool = False
+    stay: Stay | None = None  # hours / nights / months
+    guests_min: int | None = None
+    sale_requested: bool = False  # 2ajar is rentals only; the answer says so
     property_type: PropertyType | None = None
     location: LocationRecord | None = None
     price_min: int | None = None
@@ -44,16 +52,26 @@ class ParsedQuery:
     def has_hard_constraints(self) -> bool:
         return any(
             v is not None
-            for v in (self.location, self.price_min, self.price_max, self.bedrooms_min, self.property_type)
+            for v in (
+                self.location,
+                self.price_min,
+                self.price_max,
+                self.bedrooms_min,
+                self.property_type,
+                self.stay,
+                self.guests_min,
+            )
         )
 
     @property
     def is_empty(self) -> bool:
-        return not self.has_hard_constraints and not self.preferences and self.transaction is None
+        return not self.has_hard_constraints and not self.preferences and self.stay is None
 
     def as_log(self) -> dict[str, Any]:
         return {
-            "transaction": self.transaction,
+            "stay": self.stay,
+            "guests_min": self.guests_min,
+            "sale_requested": self.sale_requested,
             "property_type": self.property_type,
             "location": self.location.slug if self.location else None,
             "price_min": self.price_min,
@@ -105,11 +123,10 @@ class QueryParser:
         text = self._preferences(text, q)
         text = self._location(text, q)
         text = self._parking(text, q)
+        text = self._stay_and_guests(text, q)
         text = self._rooms(text, q)
         text = self._prices(text, q)
         text = self._phrase_tables(text, q)
-        if q.transaction is None and q.price_max is not None and q.price_max < RENT_INFERENCE_CEILING:
-            q.transaction, q.transaction_inferred = TransactionType.rent, True
         return q
 
     # ---------- steps ----------
@@ -152,6 +169,23 @@ class QueryParser:
             q.parking_spots = 2
         if q.parking_spots and not any(p.key == "parking" for p in q.preferences):
             q.preferences.append(next(p for p in PREFERENCES if p.key == "parking"))
+        return text
+
+    def _stay_and_guests(self, text: str, q: ParsedQuery) -> str:
+        m = _GUESTS.search(text)
+        if m:
+            q.guests_min = int(m.group(1))
+            text = text.replace(m.group(0), " " * len(m.group(0)), 1)
+        for stay, pattern in _COUNTED_STAY:
+            m = pattern.search(text)
+            if m:
+                q.stay = stay
+                text = text.replace(m.group(0), " " * len(m.group(0)), 1)
+                break
+        if q.stay is None:
+            ranked = sorted(((p, s) for s, ps in V.STAYS.items() for p in ps), key=lambda x: -len(x[0]))
+            q.stay = next((s for p, s in ranked if contains_phrase(text, p)), None)
+        q.sale_requested = any(contains_phrase(text, w) for w in V.SALE_WORDS)
         return text
 
     def _rooms(self, text: str, q: ParsedQuery) -> str:
@@ -213,7 +247,6 @@ class QueryParser:
             ranked = sorted(((p, k) for k, ps in table.items() for p in ps), key=lambda x: -len(x[0]))
             return next((k for p, k in ranked if contains_phrase(text, p)), None)
 
-        q.transaction = q.transaction or first(V.TRANSACTION)
         q.furnished = first(V.FURNISHED)
         if q.property_type is None:
             q.property_type = first(V.PROPERTY_TYPES)

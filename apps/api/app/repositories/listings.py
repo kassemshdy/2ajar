@@ -16,7 +16,7 @@ from sqlalchemy.orm import contains_eager
 
 from app.authz.policies import ListingRef, Principal
 from app.models import Lead, Listing, Location, Property
-from app.models.enums import Furnished, ListingStatus, PropertyType, TransactionType
+from app.models.enums import STAY_PERIODS, Furnished, ListingStatus, PropertyType, Stay, TransactionType
 
 SortOrder = Literal["newest", "price_asc", "price_desc"]
 
@@ -33,6 +33,8 @@ class SearchCriteria:
     bathrooms_min: int | None = None
     furnished: Furnished | None = None
     property_type: PropertyType | None = None
+    stay: Stay | None = None  # hours / nights / months: groups of price periods
+    guests_min: int | None = None
     sort: SortOrder = "newest"
     page: int = 1
     page_size: int = 20
@@ -46,6 +48,7 @@ def as_ref(listing: Listing) -> ListingRef:
         status=listing.status,
         expires_at=listing.expires_at,
         is_demo=listing.is_demo,
+        is_rental=listing.transaction_type == TransactionType.rent,
     )
 
 
@@ -60,6 +63,7 @@ class ListingSpecs:
     def publicly_visible(now: datetime, include_demo: bool) -> ColumnElement[bool]:
         return and_(
             Listing.status == ListingStatus.published,
+            Listing.transaction_type == TransactionType.rent,
             or_(Listing.expires_at.is_(None), Listing.expires_at > now),
             true() if include_demo else Listing.is_demo.is_(False),
         )
@@ -127,6 +131,10 @@ class ListingRepository:
             stmt = stmt.where(Property.furnished == c.furnished)
         if c.property_type:
             stmt = stmt.where(Property.property_type == c.property_type)
+        if c.stay:
+            stmt = stmt.where(Listing.price_period.in_(STAY_PERIODS[c.stay]))
+        if c.guests_min is not None:
+            stmt = stmt.where(Property.max_guests >= c.guests_min)
 
         total = await self._session.scalar(select(func.count()).select_from(stmt.order_by(None).subquery()))
         page = stmt.order_by(*_ORDERINGS[c.sort]).offset((c.page - 1) * c.page_size).limit(c.page_size)

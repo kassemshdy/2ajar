@@ -10,7 +10,7 @@ from app.core.errors import ValidationFailed
 from app.core.phone import normalize_phone
 from app.core.security import password_problems
 from app.schemas.lead import LeadCreate
-from app.schemas.listing import ListingCreate
+from app.schemas.listing import ListingCreate, ListingUpdate
 from app.services.images import process_image
 from tests.conftest import jpeg_bytes
 
@@ -50,13 +50,24 @@ def _listing(**kw: object) -> dict[str, object]:
     return base
 
 
-def test_listing_price_period_consistency() -> None:
-    ListingCreate.model_validate(_listing())
-    ListingCreate.model_validate(_listing(transaction_type="sale", price_period="total"))
-    with pytest.raises(ValidationError):
+@pytest.mark.parametrize("period", ["hourly", "daily", "nightly", "weekly", "monthly", "yearly"])
+def test_any_rental_period_is_accepted(period: str) -> None:
+    created = ListingCreate.model_validate(_listing(price_period=period, max_guests=6))
+    assert created.transaction_type == "rent" and created.max_guests == 6
+
+
+def test_rentals_only() -> None:
+    with pytest.raises(ValidationError, match="rentals only"):
+        ListingCreate.model_validate(_listing(transaction_type="sale", price_period="total"))
+    with pytest.raises(ValidationError, match="rental period"):
         ListingCreate.model_validate(_listing(price_period="total"))
+    with pytest.raises(ValidationError, match="rentals only"):
+        ListingUpdate.model_validate({"transaction_type": "sale"})
+    assert "transaction_type" not in ListingCreate.model_validate(
+        {k: v for k, v in _listing().items() if k != "transaction_type"}
+    ).model_dump(exclude_defaults=True)
     with pytest.raises(ValidationError):
-        ListingCreate.model_validate(_listing(transaction_type="sale", price_period="monthly"))
+        ListingCreate.model_validate(_listing(max_guests=0))
 
 
 @pytest.mark.parametrize("price", [0, -5, 100_000_001])

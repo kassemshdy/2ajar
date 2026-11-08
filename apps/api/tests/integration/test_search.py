@@ -82,7 +82,7 @@ async def test_ask_ranks_by_preferences_and_explains(make_actor: Any, anon: Any)
         anon, "2 bedroom in Achrafieh under $1,500 with 24/7 electricity, parking for 2 cars, safe"
     )
     assert res["understood"]["location_slug"] == "achrafieh"
-    assert res["understood"]["price_max"] == 1500 and res["understood"]["transaction_type"] == "rent"
+    assert res["understood"]["price_max"] == 1500 and res["understood"]["stay"] is None
     assert res["understood"]["parking_spots"] == 2
     assert res["total"] == 2 and res["relaxed"] == [] and res["clarification_en"] is None
     assert [h["listing"]["id"] for h in res["results"]] == [good["id"], plain["id"]]

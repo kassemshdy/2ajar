@@ -33,7 +33,7 @@ from app.models import Listing, ListingMedia, Property
 from app.models.enums import ListingEventType, ListingStatus, PricePeriod, TransactionType, UserRole
 from app.repositories.listings import ListingRepository, SearchCriteria, as_ref
 from app.repositories.locations import LocationDirectory
-from app.schemas.listing import LIVING_FIELDS, ListingCreate, ListingUpdate
+from app.schemas.listing import LIVING_FIELDS, RENTALS_ONLY, ListingCreate, ListingUpdate
 from app.services.audit import AuditTrail, record_event
 from app.services.contact import WhatsAppLinkBuilder
 from app.services.images import process_image
@@ -44,7 +44,7 @@ from app.storage import StorageBackend
 Clock = Callable[[], datetime]
 
 # Fields of ListingUpdate that live on the physical property rather than the advertisement.
-_PROPERTY_FIELDS = ("bedrooms", "bathrooms", "area_sqm", "floor", "furnished")
+_PROPERTY_FIELDS = ("bedrooms", "bathrooms", "area_sqm", "floor", "max_guests", "furnished")
 _TEXT_FIELDS = ("title_en", "title_ar", "description_en", "description_ar")
 
 
@@ -59,10 +59,11 @@ def normalize_whatsapp(raw: str | None) -> str | None:
 
 
 def check_price_period(tx: TransactionType, period: PricePeriod) -> None:
-    if tx == TransactionType.rent and period == PricePeriod.total:
-        raise ValidationFailed("Rent listings must be priced monthly or yearly")
-    if tx == TransactionType.sale and period != PricePeriod.total:
-        raise ValidationFailed("Sale listings must use price_period 'total'")
+    """Final check on the merged state of a listing (e.g. an old sale listing being edited)."""
+    if tx == TransactionType.sale:
+        raise ValidationFailed(RENTALS_ONLY)
+    if period == PricePeriod.total:
+        raise ValidationFailed("Choose a rental period: hourly, daily, nightly, weekly, monthly or yearly")
 
 
 class ListingService:
@@ -151,6 +152,7 @@ class ListingService:
             bathrooms=data.bathrooms,
             area_sqm=data.area_sqm,
             floor=data.floor,
+            max_guests=data.max_guests,
             furnished=data.furnished,
             amenities=[a.value for a in (data.amenities or [])],
             **{f: getattr(data, f) for f in LIVING_FIELDS if getattr(data, f) is not None},

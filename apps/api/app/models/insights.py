@@ -77,3 +77,15 @@ class SearchQuery(UUIDPk, Base):
     latency_ms: Mapped[int] = mapped_column(Integer, default=0)
     user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Favorite(Base):
+    """A listing a signed-in user saved (the heart). One row per user and listing, so saving is idempotent."""
+
+    __tablename__ = "favorites"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    listing_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("listings.id", ondelete="CASCADE"), primary_key=True, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
