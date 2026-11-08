@@ -152,17 +152,20 @@ async def test_favorites(make_actor: Any, anon: Any) -> None:
 
 async def test_rows_per_area(make_actor: Any, anon: Any) -> None:
     broker = await make_actor("broker", "b@example.com", org="Org")
-    hamra, faraya, verdun = [await location_id(s) for s in ("hamra", "faraya", "verdun")]
+    hamra, faraya, verdun, jounieh = [await location_id(s) for s in ("hamra", "faraya", "verdun", "jounieh")]
     for price in (800, 900, 1000, 1100):
         await published_listing(broker, price_usd=price, location_id=hamra)
     for price in (150, 200, 250):
         await published_listing(
             broker, property_type="chalet", price_period="nightly", price_usd=price, location_id=faraya
         )
-    await published_listing(broker, location_id=verdun)  # too few homes for its own row
+    await published_listing(broker, location_id=verdun)
+    await published_listing(broker, location_id=jounieh)  # Keserwan: 3 chalets in Faraya + 1 home in Jounieh
     rows = (await anon.client.get("/api/v1/discover")).json()["by_area"]
+    # Beirut (Hamra 4 + Verdun 1) and Keserwan (4) get rows; Hamra and Faraya are covered by them, and
+    # "Mount Lebanon" is too broad for a row of its own.
     assert [(r["slug"], r["kind"], len(r["listings"])) for r in rows] == [
-        ("hamra", "homes", 4),
-        ("faraya", "stays", 3),
+        ("beirut", "homes", 5),
+        ("keserwan", "stays", 4),
     ]
-    assert rows[0]["parent_en"] == "Beirut" and rows[1]["parent_ar"] == "كسروان"
+    assert rows[0]["parent_en"] is None and rows[1]["parent_ar"] == "جبل لبنان"
