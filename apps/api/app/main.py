@@ -6,15 +6,36 @@ from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy import text
+from starlette.types import ASGIApp, Receive, Scope, Send
 
-from app.api.v1 import auth, listings, misc
+from app.api.v1 import admin, auth, listings, misc, tickets
 from app.core.config import get_settings
 from app.core.errors import install_error_handlers
 from app.core.logging import RequestContextMiddleware, configure_logging
 from app.db.session import get_engine
+from app.mcp_server import build_mcp_app, session_manager_lifespan
 from app.storage import MediaNotFound, get_storage
 
 log = logging.getLogger("ajar")
+
+
+MCP_PATH = "/api/v1/mcp"
+
+
+class McpPathNormalizer:
+    """Serve the MCP endpoint at ``/api/v1/mcp`` without a slash-redirect.
+
+    The web app's proxy strips trailing slashes and many MCP clients do not follow 307s on POST, while a
+    Starlette ``Mount`` only matches ``/api/v1/mcp/...``. Rewriting the one exact path avoids both problems.
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] == "http" and scope.get("path") == MCP_PATH:
+            scope = {**scope, "path": MCP_PATH + "/", "raw_path": (MCP_PATH + "/").encode()}
+        await self.app(scope, receive, send)
 
 
 def create_app() -> FastAPI:
@@ -24,7 +45,8 @@ def create_app() -> FastAPI:
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         log.info("startup", extra={"extra_fields": {"env": settings.env, "demo_mode": settings.demo_mode}})
-        yield
+        async with session_manager_lifespan():  # MCP Streamable HTTP session manager
+            yield
         await get_engine().dispose()
 
     app = FastAPI(
@@ -36,6 +58,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
     install_error_handlers(app)
+    app.add_middleware(McpPathNormalizer)
     app.add_middleware(RequestContextMiddleware)
     app.add_middleware(
         CORSMiddleware,
@@ -74,6 +97,10 @@ def create_app() -> FastAPI:
     v1.include_router(auth.me_router)
     v1.include_router(misc.router)
     v1.include_router(listings.router)
+    v1.include_router(tickets.router)
+    v1.include_router(admin.router)
+    # MCP (AI assistant tools). Mounted before the router so "/api/v1/mcp" is not shadowed.
+    app.mount(MCP_PATH, build_mcp_app())
     app.include_router(v1)
 
     @app.get("/media/{key:path}", include_in_schema=False)

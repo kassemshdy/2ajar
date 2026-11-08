@@ -7,6 +7,7 @@ from app.api.deps import (
     CurrentUser,
 )
 from app.api.providers import AccountServiceDep, TokenServiceDep
+from app.authz.permissions import effective_permissions
 from app.core.config import get_settings
 from app.core.errors import Unauthorized
 from app.core.ratelimit import rate_limit
@@ -33,6 +34,7 @@ def user_out(user: User) -> UserOut:
             )
             for m in user.memberships
         ],
+        permissions=sorted(effective_permissions(user.role, user.extra_permissions or [])),
     )
 
 

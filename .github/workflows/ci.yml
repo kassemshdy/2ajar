@@ -112,6 +112,8 @@ jobs:
         working-directory: apps/api
         env:
           DEMO_MODE: "true"
+          SUPERUSER_EMAIL: superuser@example.com
+          SUPERUSER_PASSWORD: e2e-superuser-password
         run: |
           uv sync --frozen
           uv run alembic upgrade head

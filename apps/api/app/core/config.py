@@ -43,6 +43,11 @@ class Settings(BaseSettings):
     # Proxies that append to X-Forwarded-For before the API (Railway edge = 1; +1 behind Cloudflare proxy).
     forwarded_trusted_hops: int = 0
 
+    # Platform admin bootstrapped on every deploy by `python -m app.seed`; env is authoritative.
+    superuser_email: str | None = None
+    superuser_password: str | None = None
+    superuser_name: str = "Platform Admin"
+
     telegram_bot_token: str | None = None
     telegram_chat_id: str | None = None
     log_level: str = "INFO"
@@ -63,6 +68,14 @@ class Settings(BaseSettings):
                 raise ValueError("JWT_SECRET must be set to a random value of at least 32 characters")
             if not self.cookie_secure:
                 raise ValueError("COOKIE_SECURE must be true outside development")
+        if self.superuser_email and not self.superuser_password:
+            raise ValueError("SUPERUSER_PASSWORD is required when SUPERUSER_EMAIL is set")
+        if (
+            self.env in ("production", "staging")
+            and self.superuser_password
+            and len(self.superuser_password) < 12
+        ):
+            raise ValueError("SUPERUSER_PASSWORD must be at least 12 characters outside development")
         if self.env == "production" and self.demo_mode:
             raise ValueError("DEMO_MODE must not be enabled in production")
         return self

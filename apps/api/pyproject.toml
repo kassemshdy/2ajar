@@ -19,6 +19,7 @@ dependencies = [
   "python-multipart>=0.0.18",
   "boto3>=1.35",
   "httpx>=0.28",
+  "mcp>=2.3,<3",
 ]
 
 [dependency-groups]

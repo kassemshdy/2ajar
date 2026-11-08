@@ -12,10 +12,13 @@ from app.api.deps import SessionDep
 from app.core.config import Settings, get_settings
 from app.core.events import BackgroundEventRecorder, EventRecorder, get_event_bus
 from app.repositories.locations import LocationDirectory
+from app.services.api_tokens import ApiTokenService
 from app.services.auth import AccountService, TokenService
 from app.services.import_csv import ListingImporter
 from app.services.leads import LeadService
 from app.services.listings import ContactService, ListingMediaService, ListingService
+from app.services.tickets import TicketService
+from app.services.user_admin import UserAdminService
 from app.storage import StorageBackend, get_storage
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]
@@ -77,3 +80,22 @@ ImporterDep = Annotated[ListingImporter, Depends(get_importer)]
 AccountServiceDep = Annotated[AccountService, Depends(get_account_service)]
 TokenServiceDep = Annotated[TokenService, Depends(get_token_service)]
 LocationDirectoryDep = Annotated[LocationDirectory, Depends(get_location_directory)]
+
+
+def get_ticket_service(
+    session: SessionDep, settings: SettingsDep, storage: StorageDep, events: EventsDep
+) -> TicketService:
+    return TicketService(session, settings=settings, storage=storage, events=events)
+
+
+def get_user_admin(session: SessionDep) -> UserAdminService:
+    return UserAdminService(session)
+
+
+def get_api_tokens(session: SessionDep) -> ApiTokenService:
+    return ApiTokenService(session)
+
+
+TicketServiceDep = Annotated[TicketService, Depends(get_ticket_service)]
+UserAdminDep = Annotated[UserAdminService, Depends(get_user_admin)]
+ApiTokensDep = Annotated[ApiTokenService, Depends(get_api_tokens)]

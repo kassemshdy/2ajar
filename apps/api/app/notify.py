@@ -167,6 +167,12 @@ def render(event: ev.DomainEvent) -> str | None:
             return msg_lead(listing_title=title, source=source, phone_e164=phone)
         case ev.ListingsImported(created=created, actor_name=actor):
             return msg_import(created=created, actor_name=actor)
+        case ev.TicketCreated(
+            number=number, title=title, category=category, reporter_name=name, page_url=url
+        ):
+            where = f"\n{esc(url)}" if url else ""
+            head = f"🐞 Ticket #{number}{env_tag()} ({esc(category)}): <b>{esc(title)}</b>"
+            return f"{head}\nby {esc(name)}{where}"
     return None
 
 

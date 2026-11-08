@@ -27,3 +27,18 @@ export interface ApiErrorBody {
 }
 export type ImportResult = S["ImportResultOut"];
 export type ImportRow = S["ImportRowOut"];
+export type AdminUser = S["AdminUserOut"];
+export type AdminUserPage = S["Page_AdminUserOut_"];
+export type AdminUserUpdate = S["AdminUserUpdate"];
+export type PermissionInfo = S["PermissionInfo"];
+export type Permission = S["Permission"];
+export type UserRole = S["UserRole"];
+export type Ticket = S["TicketOut"];
+export type TicketSummary = S["TicketSummary"];
+export type TicketPage = S["Page_TicketSummary_"];
+export type TicketComment = S["CommentOut"];
+export type TicketStatus = S["TicketStatus"];
+export type TicketPriority = S["TicketPriority"];
+export type TicketCategory = S["TicketCategory"];
+export type ApiToken = S["ApiTokenOut"];
+export type ApiTokenCreated = S["ApiTokenCreated"];

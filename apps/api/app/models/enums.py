@@ -5,7 +5,20 @@ class UserRole(StrEnum):
     seeker = "seeker"
     owner = "owner"
     broker = "broker"
+    staff = "staff"  # 2ajar support/moderation team: back-office only, cannot publish listings
     platform_admin = "platform_admin"
+
+
+class Permission(StrEnum):
+    """Back-office capabilities. Roles grant a default set; admins may grant extras per user."""
+
+    users_read = "users.read"
+    users_manage = "users.manage"
+    tickets_read = "tickets.read"
+    tickets_manage = "tickets.manage"
+    listings_moderate = "listings.moderate"
+    analytics_read = "analytics.read"
+    mcp_access = "mcp.access"
 
 
 class OrgRole(StrEnum):
@@ -108,3 +121,23 @@ class ListingEventType(StrEnum):
     lead = "lead"
     favorite = "favorite"
     share = "share"
+
+
+class TicketStatus(StrEnum):
+    open = "open"
+    in_progress = "in_progress"
+    resolved = "resolved"
+    closed = "closed"
+
+
+class TicketPriority(StrEnum):
+    low = "low"
+    normal = "normal"
+    high = "high"
+    urgent = "urgent"
+
+
+class TicketCategory(StrEnum):
+    bug = "bug"
+    feedback = "feedback"
+    question = "question"

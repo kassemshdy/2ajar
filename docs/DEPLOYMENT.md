@@ -70,6 +70,33 @@ shows:
 2. The `TXT _railway-verify.2ajar` record, if Railway asks for one.
 3. Optional later: orange cloud with SSL/TLS mode **Full (strict)**, then set `FORWARDED_TRUSTED_HOPS=2`.
 
+## Superuser (platform admin)
+
+The first admin account comes from environment variables on the `api` service:
+
+| Var | Value |
+|---|---|
+| `SUPERUSER_EMAIL` | admin login e-mail |
+| `SUPERUSER_PASSWORD` | ≥ 12 characters outside development; Railway can generate it (`${{secret(24)}}`) and you can read it in the service's Variables tab |
+| `SUPERUSER_NAME` | optional display name (default "Platform Admin") |
+
+Every deploy's pre-deploy step (`python -m app.seed`) creates the account or re-asserts it: role
+`platform_admin`, active, and password = `SUPERUSER_PASSWORD`. To rotate the password, change the variable and
+redeploy; existing sessions of that account are revoked. The password is never logged.
+
+## MCP server (AI assistant access)
+
+- Endpoint: `https://<site>/api/v1/mcp` (Streamable HTTP, stateless, JSON responses), served through the web
+  app's `/api/v1` proxy.
+- Auth: `Authorization: Bearer <personal API token>`. Tokens are created on `/<locale>/settings/tokens` by users
+  with `mcp.access` (staff and platform admins). They expire after 1–365 days, can be revoked, and are stored hashed.
+- Client config (e.g. Claude Code):
+  `claude mcp add --transport http 2ajar https://<site>/api/v1/mcp --header "Authorization: Bearer 2ajar_..."`
+- Tools:
+  - Tickets: `list_tickets`, `get_ticket`, `comment_on_ticket`, `update_ticket`.
+  - Read-only data: `platform_stats`, `search_listings`, `find_users`.
+- Each tool checks the token owner's *current* permissions.
+
 ## Telegram monitoring
 
 The API posts to a Telegram chat when an account is created, a listing is created or published, a lead arrives

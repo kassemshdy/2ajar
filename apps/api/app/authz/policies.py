@@ -8,7 +8,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from app.models.enums import ListingStatus, OrgRole, UserRole
+from app.models.enums import ListingStatus, OrgRole, Permission, UserRole
 
 
 @dataclass(frozen=True)
@@ -16,6 +16,10 @@ class Principal:
     user_id: uuid.UUID
     role: UserRole
     org_roles: dict[uuid.UUID, OrgRole] = field(default_factory=dict)
+    permissions: frozenset[Permission] = frozenset()
+
+    def has(self, permission: Permission) -> bool:
+        return permission in self.permissions
 
     @property
     def is_admin(self) -> bool:
