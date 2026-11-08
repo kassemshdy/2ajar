@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { DiscoverOut, ListingPublic } from "@2ajar/contracts";
+import type { DiscoverOut, ListingPublic, Location } from "@2ajar/contracts";
 import { listing } from "@/test/fixtures";
 import { routerMock } from "@/test/setup";
 import { seekerUser } from "@/test/support-fixtures";
@@ -13,6 +13,7 @@ import { ListingTile } from "../listing-tile";
 import { SavedListings } from "../saved-listings";
 import { CategoryBar } from "./category-bar";
 import { NearYou } from "./near-you";
+import { SearchPill } from "./search-pill";
 import { Row } from "./row";
 import { TopAreas } from "./top-areas";
 
@@ -30,6 +31,14 @@ const chalet = (over: Partial<ListingPublic> = {}): ListingPublic =>
 
 afterEach(() => vi.unstubAllGlobals());
 
+const pillLocations: Location[] = [
+  { id: "g1", parent_id: null, level: "governorate", slug: "beirut", name_en: "Beirut", name_ar: "بيروت", path: "beirut" },
+  { id: "a1", parent_id: "g1", level: "area", slug: "hamra", name_en: "Hamra", name_ar: "الحمرا", path: "beirut/hamra" },
+  { id: "g2", parent_id: null, level: "governorate", slug: "mount-lebanon", name_en: "Mount Lebanon", name_ar: "جبل لبنان", path: "mount-lebanon" },
+  { id: "d2", parent_id: "g2", level: "district", slug: "keserwan", name_en: "Keserwan", name_ar: "كسروان", path: "mount-lebanon/keserwan" },
+  { id: "a2", parent_id: "d2", level: "area", slug: "faraya", name_en: "Faraya", name_ar: "فاريا", path: "mount-lebanon/keserwan/faraya" },
+];
+
 describe("format helpers", () => {
   it("maps every price period to a suffix and a stay kind", () => {
     expect(periodSuffixKey("hourly")).toBe("perHour");
@@ -45,9 +54,8 @@ describe("ListingTile", () => {
     renderWithIntl(<ListingTile listing={chalet()} note="2 km away" />);
     const tile = screen.getByTestId("listing-tile");
     expect(tile).toHaveAttribute("href", `/en/listings/${ID}`);
-    expect(tile).toHaveTextContent("Chalet · Hamra");
-    expect(tile).toHaveTextContent("6 guests · 3 bedrooms");
-    expect(tile).toHaveTextContent("$180 /night");
+    expect(tile).toHaveTextContent("Chalet in Hamra");
+    expect(tile).toHaveTextContent("$180 night · 6 guests");
     expect(tile).toHaveTextContent("DEMO");
     expect(tile).toHaveTextContent("2 km away");
   });
@@ -63,8 +71,14 @@ describe("ListingTile", () => {
       "ar",
     );
     const tile = screen.getByTestId("listing-tile");
-    expect(tile).toHaveTextContent("/ساعة");
+    expect(tile).toHaveTextContent("شقة في الحمرا");
+    expect(tile).toHaveTextContent("ساعة");
+    expect(tile).not.toHaveTextContent("·");
     expect(tile).not.toHaveTextContent("تجريبي");
+    renderWithIntl(
+      <ListingTile listing={chalet({ price_period: "total", property: { ...listing().property, max_guests: null, bedrooms: 2 } })} />,
+    );
+    expect(screen.getAllByTestId("listing-tile")[1]).toHaveTextContent("$180 · 2 bedrooms");
   });
 });
 
@@ -110,6 +124,18 @@ describe("favorites", () => {
     await waitFor(() => expect(button).toHaveAttribute("aria-pressed", "true")); // rolled back
   });
 
+  it("ignores clicks while the session is still loading", async () => {
+    vi.clearAllMocks();
+    mockFetch({ "GET /api/v1/me": () => new Promise<Response>(() => undefined) });
+    renderWithIntl(
+      <FavoritesProvider>
+        <FavoriteButton listingId={ID} />
+      </FavoritesProvider>,
+    );
+    fireEvent.click(screen.getByTestId("favorite-button"));
+    expect(routerMock.push).not.toHaveBeenCalled();
+  });
+
   it("works as a no-op outside the provider", async () => {
     function Probe() {
       const { isSaved, toggle } = useFavorites();
@@ -132,7 +158,7 @@ describe("Row", () => {
     );
     const row = screen.getByTestId("row");
     expect(row).toHaveTextContent("Chalets");
-    expect(within(row).getByRole("link", { name: "Show all" })).toHaveAttribute("href", "/en/listings?stay=nights");
+    expect(within(row).getByRole("link", { name: /Chalets/ })).toHaveAttribute("href", "/en/listings?stay=nights");
     fireEvent.click(screen.getByRole("button", { name: "Next" }));
     fireEvent.click(screen.getByRole("button", { name: "Previous" }));
     expect(scrollBy).toHaveBeenCalledTimes(2);
@@ -210,13 +236,36 @@ describe("SavedListings", () => {
   });
 });
 
+describe("SearchPill", () => {
+  it("submits where / when / who to the results page", () => {
+    renderWithIntl(<SearchPill locations={pillLocations} />);
+    const form = screen.getByTestId("search-pill");
+    expect(form).toHaveAttribute("action", "/en/listings");
+    const where = screen.getByLabelText("Where");
+    expect(within(where).getAllByRole("option").map((o) => o.getAttribute("value"))).toEqual([
+      "", "beirut", "hamra", "mount-lebanon", "keserwan", "faraya",
+    ]);
+    expect(within(screen.getByLabelText("When")).getAllByRole("option").map((o) => o.textContent)).toEqual([
+      "Any length", "By the hour", "Nights & weekends", "Months & years",
+    ]);
+    expect(screen.getByLabelText("Who")).toHaveAttribute("name", "guests_min");
+  });
+
+  it("speaks Arabic", () => {
+    renderWithIntl(<SearchPill locations={pillLocations} />, "ar");
+    expect(screen.getByRole("button", { name: "بحث" })).toBeInTheDocument();
+    expect(screen.getByLabelText("أين")).toHaveTextContent("فاريا");
+  });
+});
+
 describe("CategoryBar and TopAreas", () => {
   it("links each category to a plain-language search", () => {
     renderWithIntl(<CategoryBar />, "ar");
     const links = screen.getAllByTestId("category");
     expect(links.length).toBeGreaterThanOrEqual(10);
-    expect(links[0]).toHaveTextContent("شاليهات");
-    expect(links[0]).toHaveAttribute("href", `/ar/ask?q=${encodeURIComponent("شاليه")}`);
+    expect(links[0]).toHaveTextContent("مفروش"); // apartments first
+    expect(links[0]).toHaveAttribute("href", `/ar/ask?q=${encodeURIComponent("شقة مفروشة")}`);
+    expect(links.map((l) => l.textContent)).toContain("شاليهات");
   });
 
   it("shows curated scores with listing counts and demo labels", () => {

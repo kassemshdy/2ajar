@@ -965,6 +965,29 @@ export interface components {
              */
             updated_at: string;
         };
+        /**
+         * AreaRow
+         * @description A row of homes in one place ("Popular homes in Batroun", "Places to stay in Faraya").
+         */
+        AreaRow: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "homes" | "stays";
+            /** Listings */
+            listings: components["schemas"]["ListingPublic"][];
+            /** Name Ar */
+            name_ar: string;
+            /** Name En */
+            name_en: string;
+            /** Parent Ar */
+            parent_ar: string | null;
+            /** Parent En */
+            parent_en: string | null;
+            /** Slug */
+            slug: string;
+        };
         /** AskHit */
         AskHit: {
             listing: components["schemas"]["ListingPublic"];
@@ -1056,6 +1079,11 @@ export interface components {
          * @description Each row is empty when there is nothing honest to show (e.g. no views yet), and the UI hides it.
          */
         DiscoverOut: {
+            /**
+             * By Area
+             * @default []
+             */
+            by_area: components["schemas"]["AreaRow"][];
             /** Great Value */
             great_value: components["schemas"]["ValueListing"][];
             /** Hours */

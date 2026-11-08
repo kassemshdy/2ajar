@@ -13,7 +13,12 @@
     "admin": "Admin",
     "tickets": "My tickets",
     "tokens": "API tokens",
-    "saved": "Saved"
+    "saved": "Saved",
+    "menu": "Menu",
+    "explore": "Explore",
+    "signup": "Sign up",
+    "profile": "Profile",
+    "help": "Help"
   },
   "home": {
     "headline": "Find your next home in Lebanon",
@@ -80,7 +85,14 @@
     "similar": "Similar homes nearby",
     "kmAway": "{km} km away",
     "hostedBy": "Listed by {name}",
-    "showAllPhotos": "Show all photos"
+    "showAllPhotos": "Show all photos",
+    "typeIn": "{type} in {area}",
+    "unit_hourly": "hour",
+    "unit_daily": "day",
+    "unit_nightly": "night",
+    "unit_weekly": "week",
+    "unit_monthly": "month",
+    "unit_yearly": "year"
   },
   "contact": {
     "title": "Interested?",
@@ -225,7 +237,14 @@
     "network": "Network error. Check your connection."
   },
   "footer": {
-    "tagline": "2ajar — trusted property discovery in Lebanon."
+    "tagline": "2ajar — trusted property discovery in Lebanon.",
+    "support": "Support",
+    "renting": "Renting",
+    "company": "2ajar",
+    "howSearch": "How search works",
+    "listProperty": "List your property",
+    "importCsv": "Import listings (CSV)",
+    "rights": "© {year} 2ajar · Lebanon"
   },
   "import": {
     "importCsv": "Import CSV",
@@ -498,7 +517,18 @@
       "studios": "studio",
       "family": "3 bedroom, safe and quiet area",
       "solar": "solar power"
-    }
+    },
+    "where": "Where",
+    "whereAny": "Search destinations",
+    "when": "When",
+    "whenAny": "Any length",
+    "who": "Who",
+    "whoAny": "Add guests",
+    "search": "Search",
+    "orAsk": "Or just ask in your own words",
+    "popularIn": "Popular homes in {area}",
+    "staysIn": "Places to stay in {area}",
+    "openArea": "Show all homes in {area}"
   },
   "saved": {
     "title": "Saved",

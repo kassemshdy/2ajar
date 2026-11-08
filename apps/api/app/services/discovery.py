@@ -16,12 +16,14 @@ from app.models import Favorite, Listing
 from app.models.enums import STAY_PERIODS, ListingEventType, Stay
 from app.repositories.discovery import DiscoveryRepository, Scored
 from app.repositories.listings import SearchCriteria
-from app.schemas.discovery import DiscoverOut, NearbyListing, RankedArea, ValueListing, ViewedListing
+from app.schemas.discovery import AreaRow, DiscoverOut, NearbyListing, RankedArea, ValueListing, ViewedListing
 from app.services.audit import record_event
 from app.services.listings import ListingService
 from app.services.presenters import ListingPresenter as present
 
 ROW_SIZE = 12
+AREA_ROWS = 4
+AREA_ROW_MIN = 3  # a place needs a few homes before it gets its own row
 NEARBY_MAX_KM = 40.0  # Lebanon is ~200 km long; beyond this "near you" stops being true
 
 
@@ -54,7 +56,9 @@ class DiscoveryService:
         viewed = await self._repo.most_viewed(ROW_SIZE)
         value = await self._repo.great_value(ROW_SIZE)
         ranked = await self._repo.top_areas(8)
+        by_area = await self._area_rows()
         return DiscoverOut(
+            by_area=by_area,
             recent=[present.to_public(x) for x in await self._row()],
             nights=[present.to_public(x) for x in await self._row(Stay.nights)],
             hours=[present.to_public(x) for x in await self._row(Stay.hours)],
@@ -73,6 +77,31 @@ class DiscoveryService:
                 if (area := present.area(r.profile)) is not None
             ],
         )
+
+    async def _area_rows(self) -> list[AreaRow]:
+        snapshot = await self._listings.locations.snapshot()
+        rows: list[AreaRow] = []
+        for location_id in await self._repo.busiest_areas(AREA_ROWS, AREA_ROW_MIN):
+            loc = snapshot.by_id.get(location_id)
+            if loc is None:
+                continue
+            items, _ = await self._listings.search(SearchCriteria(page_size=ROW_SIZE), loc.slug)
+            if not items:
+                continue
+            parent = snapshot.by_id.get(loc.parent_id) if loc.parent_id else None
+            short = sum(1 for x in items if _stay_of(x) in (Stay.hours, Stay.nights))
+            rows.append(
+                AreaRow(
+                    slug=loc.slug,
+                    name_en=loc.name_en,
+                    name_ar=loc.name_ar,
+                    parent_en=parent.name_en if parent else None,
+                    parent_ar=parent.name_ar if parent else None,
+                    kind="stays" if short * 2 > len(items) else "homes",
+                    listings=[present.to_public(x) for x in items],
+                )
+            )
+        return rows
 
     async def nearby(self, lat: float, lng: float, stay: Stay | None, limit: int) -> list[NearbyListing]:
         hits = await self._repo.nearby(lat, lng, limit, stay=stay, max_km=NEARBY_MAX_KM)

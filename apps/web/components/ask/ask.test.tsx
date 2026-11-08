@@ -42,6 +42,15 @@ describe("AskBox", () => {
   });
 });
 
+describe("AskBox (slim)", () => {
+  it("renders a one-line bar with neutral chips", () => {
+    renderWithIntl(<AskBox slim suggestions={suggestions} />);
+    const box = screen.getByLabelText(/Ask in plain words/);
+    expect(box).toHaveAttribute("rows", "1");
+    expect(box.getAttribute("placeholder")).toMatch(/^Or just ask in your own words:/);
+  });
+});
+
 describe("ReasonList", () => {
   it("shows status and source of every reason", () => {
     renderWithIntl(

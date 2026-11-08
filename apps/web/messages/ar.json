@@ -13,7 +13,12 @@
     "admin": "الإدارة",
     "tickets": "بلاغاتي",
     "tokens": "مفاتيح API",
-    "saved": "المحفوظات"
+    "saved": "المحفوظات",
+    "menu": "القائمة",
+    "explore": "استكشف",
+    "signup": "إنشاء حساب",
+    "profile": "الحساب",
+    "help": "المساعدة"
   },
   "home": {
     "headline": "اعثر على منزلك القادم في لبنان",
@@ -80,7 +85,14 @@
     "similar": "منازل مشابهة قريبة",
     "kmAway": "على بعد {km} كم",
     "hostedBy": "يعرضه {name}",
-    "showAllPhotos": "عرض كل الصور"
+    "showAllPhotos": "عرض كل الصور",
+    "typeIn": "{type} في {area}",
+    "unit_hourly": "ساعة",
+    "unit_daily": "يوم",
+    "unit_nightly": "ليلة",
+    "unit_weekly": "أسبوع",
+    "unit_monthly": "شهر",
+    "unit_yearly": "سنة"
   },
   "contact": {
     "title": "مهتم؟",
@@ -225,7 +237,14 @@
     "network": "خطأ في الشبكة. تحقّق من اتصالك."
   },
   "footer": {
-    "tagline": "إيجار — منصة موثوقة لاكتشاف العقارات في لبنان."
+    "tagline": "إيجار — منصة موثوقة لاكتشاف العقارات في لبنان.",
+    "support": "الدعم",
+    "renting": "التأجير",
+    "company": "إيجار",
+    "howSearch": "كيف يعمل البحث",
+    "listProperty": "اعرض عقارك",
+    "importCsv": "استيراد إعلانات (CSV)",
+    "rights": "© {year} إيجار · لبنان"
   },
   "import": {
     "importCsv": "استيراد CSV",
@@ -498,7 +517,18 @@
       "studios": "استوديو",
       "family": "3 غرف نوم منطقة آمنة وهادئة",
       "solar": "طاقة شمسية"
-    }
+    },
+    "where": "أين",
+    "whereAny": "ابحث عن وجهة",
+    "when": "متى",
+    "whenAny": "أي مدة",
+    "who": "مَن",
+    "whoAny": "أضف ضيوفاً",
+    "search": "بحث",
+    "orAsk": "أو اسأل بكلماتك",
+    "popularIn": "منازل رائجة في {area}",
+    "staysIn": "أماكن للإقامة في {area}",
+    "openArea": "عرض كل المنازل في {area}"
   },
   "saved": {
     "title": "المحفوظات",
