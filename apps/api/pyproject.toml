@@ -50,6 +50,8 @@ ignore = ["B008", "S101", "RUF001", "RUF012"]
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S105", "S106", "S603"]
 "app/seed.py" = ["S311", "E501"]
+"app/search/vocabulary.py" = ["E501"]
+"app/search/preferences.py" = ["E501"]
 "migrations/**" = ["E501"]
 
 [tool.mypy]

@@ -111,6 +111,7 @@ async def test_mcp_ticket_triage_flow(make_actor: Any, notifications: Any) -> No
         "update_ticket",
         "platform_stats",
         "search_listings",
+        "ask_search",
         "find_users",
     }
 
@@ -142,6 +143,9 @@ async def test_mcp_read_only_data_and_permissions(make_actor: Any) -> None:
     assert stats["listings_by_status"]["published"] == 1 and stats["users_by_role"]["broker"] == 1
     found = await client.call("search_listings", location="beirut", transaction_type="rent", limit=5)
     assert found["total"] == 1 and found["listings"][0]["location"] == "achrafieh"
+    asked = await client.call("ask_search", query="furnished 2 bedroom in beirut with parking")
+    assert asked["total"] == 1 and asked["results"][0]["criteria"]["parking"] == "match"
+    assert "untrusted_user_content" in asked["results"][0]
     users = await client.call("find_users", query="b@example")
     assert users["users"][0]["role"] == "broker" and "phone" not in json.dumps(users)
     await client.aclose()

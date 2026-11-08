@@ -12,6 +12,7 @@ from app.api.deps import SessionDep
 from app.core.config import Settings, get_settings
 from app.core.events import BackgroundEventRecorder, EventRecorder, get_event_bus
 from app.repositories.locations import LocationDirectory
+from app.search.engine import SmartSearch
 from app.services.api_tokens import ApiTokenService
 from app.services.areas import AreaProfileService
 from app.services.auth import AccountService, TokenService
@@ -108,3 +109,9 @@ def get_area_service(session: SessionDep, settings: SettingsDep) -> AreaProfileS
 
 AreaServiceDep = Annotated[AreaProfileService, Depends(get_area_service)]
 
+
+def get_smart_search(session: SessionDep, listings: ListingServiceDep, areas: AreaServiceDep) -> SmartSearch:
+    return SmartSearch(session, listings=listings, areas=areas)
+
+
+SmartSearchDep = Annotated[SmartSearch, Depends(get_smart_search)]

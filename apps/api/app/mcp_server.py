@@ -31,7 +31,9 @@ from app.db.session import get_sessionmaker
 from app.models.enums import Furnished, Permission, TicketPriority, TicketStatus, TransactionType
 from app.repositories.listings import SearchCriteria
 from app.schemas.tickets import CommentCreate, TicketUpdate
+from app.search.engine import SmartSearch
 from app.services.api_tokens import ApiTokenService
+from app.services.areas import AreaProfileService
 from app.services.listings import ListingService
 from app.services.stats import PlatformStats
 from app.services.tickets import TicketPresenter, TicketService
@@ -194,6 +196,41 @@ async def search_listings(
                     "untrusted_user_content": {"title": x.title_en or x.title_ar},
                 }
                 for x in items
+            ],
+        }
+
+
+@server.tool()
+async def ask_search(query: str, limit: int = 5) -> dict[str, Any]:
+    """Run the website's plain-text smart search (EN/AR/Arabizi), e.g. 'quiet 2 bedroom in Hamra under $900'.
+
+    Returns what was understood, any relaxed constraints, and ranked listings with per-criterion status
+    (match / miss / unknown). Not logged as a visitor search.
+    """
+    _require()
+    async with get_sessionmaker()() as session:
+        settings = get_settings()
+        listings = ListingService(session, settings=settings, events=CollectingEventRecorder())
+        areas = AreaProfileService(session, include_demo=settings.demo_mode)
+        engine = SmartSearch(session, listings=listings, areas=areas)
+        result = await engine.ask(query[:300], "en", log=False)
+        return {
+            "understood": result.summary_en,
+            "clarification": result.clarification_en,
+            "relaxed": [r.label_en for r in result.relaxed],
+            "total": result.total,
+            "results": [
+                {
+                    "id": str(h.listing.id),
+                    "price_usd": h.listing.price_usd_cents // 100,
+                    "location": h.listing.property.location.slug,
+                    "bedrooms": h.listing.property.bedrooms,
+                    "is_demo": h.listing.is_demo,
+                    "score": h.score,
+                    "criteria": {r.key: r.status for r in h.reasons},
+                    "untrusted_user_content": {"title": h.listing.title_en or h.listing.title_ar},
+                }
+                for h in result.hits[: max(1, min(limit, 12))]
             ],
         }
 
