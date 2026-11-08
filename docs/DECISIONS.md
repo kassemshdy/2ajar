@@ -88,6 +88,20 @@ Writes are limited to ticket comments and status; there is no SQL access and no 
 The bootstrap admin is declared in env (`SUPERUSER_EMAIL/PASSWORD`) and re-asserted on every deploy, so access
 can always be recovered by changing a variable, with no shell into the container.
 
+## ADR-021 Plain-text search is rule-based first
+The home page answers free-text requests in Arabic, English and Arabizi without any LLM or paid API: a
+normalising parser (Arabic letter folding, proclitics such as بال/وال, Arabic digits, "1.2k") extracts hard filters
+and preference keywords from curated phrase tables; SQL applies the filters; a deterministic score ranks by
+preferences; reasons are generated only from stored fields with match / miss / unknown. *Consequence*: answers are
+explainable, free and fast, but phrasing outside the tables is missed. Queries are logged (`search_queries`) to
+grow the tables; ADR-012's LLM intent extraction can later replace the parser behind the same response schema.
+
+## ADR-022 Area facts are staff-curated, dated and sourced
+Safety, theft reports, noise, garbage collection and flood risk are per-area facts, not per-listing claims, so
+they live in `area_profiles`, editable by `areas.manage`, inherited by child areas, shown with an update date and
+a source note, and labelled as coming from the 2ajar team. Demo profiles are synthetic, marked `[DEMO]`, hidden
+unless `DEMO_MODE=true`, and purged with demo data.
+
 ---
 
 ## Assumptions

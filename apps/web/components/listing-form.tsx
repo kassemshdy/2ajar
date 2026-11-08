@@ -27,11 +27,26 @@ function errorText(e: unknown, fallback: string) {
 
 const num = (v: FormDataEntryValue | null) => (v === null || v === "" ? null : Number(v));
 const str = (v: FormDataEntryValue | null) => (v === null || v === "" ? null : String(v));
+const bool = (v: FormDataEntryValue | null) => (v === "yes" ? true : v === "no" ? false : null);
+const triState = (v: boolean | null | undefined) => (v === true ? "yes" : v === false ? "no" : "");
+/** One bullet per line; blank lines dropped (the API trims and caps the list). */
+const lines = (v: FormDataEntryValue | null) =>
+  String(v ?? "")
+    .split("\n")
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+const ELECTRICITY = ["edl_only", "edl_plus_generator", "generator_24_7", "solar", "solar_battery"];
+const WATER = ["municipal", "well", "tanker", "mixed"];
+const SEWAGE = ["public_network", "septic_tank"];
+const WINTER = ["warm", "moderate", "cold"];
+const SUMMER = ["cool", "moderate", "hot"];
 
 export function ListingForm({ locations, listingId }: { locations: Location[]; listingId?: string }) {
   const t = useTranslations("form");
   const te = useTranslations("enums");
   const tErr = useTranslations("errors");
+  const tl = useTranslations("living");
   const locale = useLocale();
   const router = useRouter();
   const [listing, setListing] = useState<ListingPrivate | null>(null);
@@ -78,6 +93,19 @@ export function ListingForm({ locations, listingId }: { locations: Location[]; l
       description_en: str(fd.get("description_en")),
       description_ar: str(fd.get("description_ar")),
       contact_whatsapp: str(fd.get("contact_whatsapp")),
+      electricity_supply: str(fd.get("electricity_supply")),
+      generator_amps: num(fd.get("generator_amps")),
+      electricity_usd_month: num(fd.get("electricity_usd_month")),
+      water_source: str(fd.get("water_source")),
+      water_usd_month: num(fd.get("water_usd_month")),
+      sewage: str(fd.get("sewage")),
+      parking_spots: num(fd.get("parking_spots")),
+      solar_ready: bool(fd.get("solar_ready")),
+      elevator_backup: bool(fd.get("elevator_backup")),
+      winter_comfort: str(fd.get("winter_comfort")),
+      summer_comfort: str(fd.get("summer_comfort")),
+      highlights: lines(fd.get("highlights")),
+      things_to_know: lines(fd.get("things_to_know")),
     };
     setBusy(true);
     setError(null);
@@ -133,6 +161,7 @@ export function ListingForm({ locations, listingId }: { locations: Location[]; l
   }
 
   const l = listing;
+  const lv = l?.property.living;
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <h1 className="text-2xl font-bold">{listingId ? t("editTitle") : t("createTitle")}</h1>
@@ -251,6 +280,75 @@ export function ListingForm({ locations, listingId }: { locations: Location[]; l
               </label>
             ))}
           </div>
+        </Card>
+
+        <Card className="grid gap-4 p-4 sm:grid-cols-2" data-testid="living-fields">
+          <div className="sm:col-span-2">
+            <h2 className="font-semibold">{tl("title")}</h2>
+            <p className="text-xs text-muted-foreground">{t("livingHint")}</p>
+          </div>
+          <Field label={tl("electricity")} htmlFor="electricity_supply">
+            <Select id="electricity_supply" name="electricity_supply" defaultValue={lv?.electricity_supply ?? ""}>
+              <option value="">—</option>
+              {ELECTRICITY.map((v) => <option key={v} value={v}>{tl(`electricitySupply.${v}`)}</option>)}
+            </Select>
+          </Field>
+          <Field label={t("generatorAmps")} htmlFor="generator_amps">
+            <Input id="generator_amps" name="generator_amps" type="number" min={1} max={100} defaultValue={lv?.generator_amps ?? undefined} />
+          </Field>
+          <Field label={t("electricityBill")} htmlFor="electricity_usd_month">
+            <Input id="electricity_usd_month" name="electricity_usd_month" type="number" min={0} max={5000} defaultValue={lv?.electricity_usd_month ?? undefined} />
+          </Field>
+          <Field label={tl("water")} htmlFor="water_source">
+            <Select id="water_source" name="water_source" defaultValue={lv?.water_source ?? ""}>
+              <option value="">—</option>
+              {WATER.map((v) => <option key={v} value={v}>{tl(`waterSource.${v}`)}</option>)}
+            </Select>
+          </Field>
+          <Field label={t("waterBill")} htmlFor="water_usd_month">
+            <Input id="water_usd_month" name="water_usd_month" type="number" min={0} max={2000} defaultValue={lv?.water_usd_month ?? undefined} />
+          </Field>
+          <Field label={tl("sewage")} htmlFor="sewage">
+            <Select id="sewage" name="sewage" defaultValue={lv?.sewage ?? ""}>
+              <option value="">—</option>
+              {SEWAGE.map((v) => <option key={v} value={v}>{tl(`sewageKind.${v}`)}</option>)}
+            </Select>
+          </Field>
+          <Field label={t("parkingSpots")} htmlFor="parking_spots">
+            <Input id="parking_spots" name="parking_spots" type="number" min={0} max={20} defaultValue={lv?.parking_spots ?? undefined} />
+          </Field>
+          <Field label={t("solarReady")} htmlFor="solar_ready">
+            <Select id="solar_ready" name="solar_ready" defaultValue={triState(lv?.solar_ready)}>
+              <option value="">—</option>
+              <option value="yes">{t("yes")}</option>
+              <option value="no">{t("no")}</option>
+            </Select>
+          </Field>
+          <Field label={t("elevatorBackup")} htmlFor="elevator_backup">
+            <Select id="elevator_backup" name="elevator_backup" defaultValue={triState(lv?.elevator_backup)}>
+              <option value="">—</option>
+              <option value="yes">{t("yes")}</option>
+              <option value="no">{t("no")}</option>
+            </Select>
+          </Field>
+          <Field label={tl("winter")} htmlFor="winter_comfort">
+            <Select id="winter_comfort" name="winter_comfort" defaultValue={lv?.winter_comfort ?? ""}>
+              <option value="">—</option>
+              {WINTER.map((v) => <option key={v} value={v}>{tl(`winterComfort.${v}`)}</option>)}
+            </Select>
+          </Field>
+          <Field label={tl("summer")} htmlFor="summer_comfort">
+            <Select id="summer_comfort" name="summer_comfort" defaultValue={lv?.summer_comfort ?? ""}>
+              <option value="">—</option>
+              {SUMMER.map((v) => <option key={v} value={v}>{tl(`summerComfort.${v}`)}</option>)}
+            </Select>
+          </Field>
+          <Field label={tl("highlights")} htmlFor="highlights" hint={t("onePerLine")}>
+            <Textarea id="highlights" name="highlights" dir="auto" maxLength={700} defaultValue={(lv?.highlights ?? []).join("\n")} />
+          </Field>
+          <Field label={tl("thingsToKnow")} htmlFor="things_to_know" hint={t("onePerLine")}>
+            <Textarea id="things_to_know" name="things_to_know" dir="auto" maxLength={700} defaultValue={(lv?.things_to_know ?? []).join("\n")} />
+          </Field>
         </Card>
 
         <Card className="grid gap-4 p-4 sm:grid-cols-2">

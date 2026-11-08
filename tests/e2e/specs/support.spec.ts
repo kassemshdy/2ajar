@@ -10,7 +10,7 @@ test("user reports a bug from the floating button, superuser triages and replies
 
   // 1. Visitors do not see the button; a signed-in user does
   await page.goto("/en");
-  await expect(page.getByTestId("search-form")).toBeVisible();
+  await expect(page.getByTestId("ask-box")).toBeVisible();
   await expect(page.getByTestId("bug-button")).toHaveCount(0);
   await page.goto("/en/register");
   await page.getByLabel("Looking for a home").check();

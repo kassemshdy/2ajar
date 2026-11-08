@@ -20,7 +20,18 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, Timestamps, UUIDPk
-from app.models.enums import Furnished, ListingStatus, PricePeriod, PropertyType, TransactionType
+from app.models.enums import (
+    ElectricitySupply,
+    Furnished,
+    ListingStatus,
+    PricePeriod,
+    PropertyType,
+    Sewage,
+    SummerComfort,
+    TransactionType,
+    WaterSource,
+    WinterComfort,
+)
 from app.models.location import Location
 from app.models.types import enum_type
 from app.models.user import Organization, User
@@ -44,6 +55,23 @@ class Property(UUIDPk, Timestamps, Base):
     lat: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))
     lng: Mapped[Decimal | None] = mapped_column(Numeric(9, 6))
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+
+    # ---- Living factors (reported by the publisher; shown as "reported by publisher") ----
+    electricity_supply: Mapped[ElectricitySupply | None] = mapped_column(
+        enum_type(ElectricitySupply, "electricity_supply")
+    )
+    generator_amps: Mapped[int | None] = mapped_column(Integer)  # subscription size, e.g. 5A / 10A
+    electricity_usd_month: Mapped[int | None] = mapped_column(Integer)  # typical monthly bill
+    water_source: Mapped[WaterSource | None] = mapped_column(enum_type(WaterSource, "water_source"))
+    water_usd_month: Mapped[int | None] = mapped_column(Integer)
+    sewage: Mapped[Sewage | None] = mapped_column(enum_type(Sewage, "sewage"))
+    parking_spots: Mapped[int | None] = mapped_column(Integer)
+    solar_ready: Mapped[bool | None] = mapped_column(Boolean)  # roof/space where panels can be installed
+    elevator_backup: Mapped[bool | None] = mapped_column(Boolean)  # elevator works during power cuts
+    winter_comfort: Mapped[WinterComfort | None] = mapped_column(enum_type(WinterComfort, "winter_comfort"))
+    summer_comfort: Mapped[SummerComfort | None] = mapped_column(enum_type(SummerComfort, "summer_comfort"))
+    highlights: Mapped[list[str]] = mapped_column(JSONB, default=list, server_default="[]")
+    things_to_know: Mapped[list[str]] = mapped_column(JSONB, default=list, server_default="[]")
 
     location: Mapped[Location] = relationship(lazy="joined")
 

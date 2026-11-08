@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse, Response
 from sqlalchemy import text
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from app.api.v1 import admin, auth, listings, misc, tickets
+from app.api.v1 import admin, auth, listings, misc, search, tickets
 from app.core.config import get_settings
 from app.core.errors import install_error_handlers
 from app.core.logging import RequestContextMiddleware, configure_logging
@@ -97,6 +97,7 @@ def create_app() -> FastAPI:
     v1.include_router(auth.me_router)
     v1.include_router(misc.router)
     v1.include_router(listings.router)
+    v1.include_router(search.router)
     v1.include_router(tickets.router)
     v1.include_router(admin.router)
     # MCP (AI assistant tools). Mounted before the router so "/api/v1/mcp" is not shadowed.

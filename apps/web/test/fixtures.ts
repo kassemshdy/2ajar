@@ -1,9 +1,25 @@
-import type { ListingPrivate, Location } from "@2ajar/contracts";
+import type { LivingFactors, ListingPrivate, Location } from "@2ajar/contracts";
 
 export const locations: Location[] = [
   { id: "g1", parent_id: null, level: "governorate", slug: "beirut", name_en: "Beirut", name_ar: "بيروت", path: "beirut" },
   { id: "a1", parent_id: "g1", level: "area", slug: "hamra", name_en: "Hamra", name_ar: "الحمرا", path: "beirut/hamra" },
 ];
+
+export const emptyLiving: LivingFactors = {
+  electricity_supply: null,
+  generator_amps: null,
+  electricity_usd_month: null,
+  water_source: null,
+  water_usd_month: null,
+  sewage: null,
+  parking_spots: null,
+  solar_ready: null,
+  elevator_backup: null,
+  winter_comfort: null,
+  summer_comfort: null,
+  highlights: [],
+  things_to_know: [],
+};
 
 export function listing(over: Partial<ListingPrivate> = {}): ListingPrivate {
   return {
@@ -22,6 +38,7 @@ export function listing(over: Partial<ListingPrivate> = {}): ListingPrivate {
       floor: 3,
       furnished: "furnished",
       amenities: ["parking"],
+      living: { ...emptyLiving },
     },
     location: { slug: "hamra", name_en: "Hamra", name_ar: "الحمرا", path: "beirut/hamra" },
     media: [],

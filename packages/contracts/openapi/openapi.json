@@ -128,7 +128,7 @@
                 "items": {
                   "$ref": "#/components/schemas/Permission"
                 },
-                "maxItems": 7,
+                "maxItems": 8,
                 "type": "array"
               },
               {
@@ -374,6 +374,418 @@
         "title": "ApiTokenOut",
         "type": "object"
       },
+      "AreaProfileIn": {
+        "additionalProperties": false,
+        "properties": {
+          "flood_risk": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FloodRisk"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "garbage_collection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GarbageCollection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "noise_notes_ar": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Noise Notes Ar"
+          },
+          "noise_notes_en": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Noise Notes En"
+          },
+          "quiet_score": {
+            "anyOf": [
+              {
+                "maximum": 5,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiet Score"
+          },
+          "safety_score": {
+            "anyOf": [
+              {
+                "maximum": 5,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safety Score"
+          },
+          "source_note": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Note"
+          },
+          "summary_ar": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Ar"
+          },
+          "summary_en": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary En"
+          },
+          "theft_reports_12m": {
+            "anyOf": [
+              {
+                "maximum": 100000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Theft Reports 12M"
+          }
+        },
+        "title": "AreaProfileIn",
+        "type": "object"
+      },
+      "AreaProfileOut": {
+        "additionalProperties": false,
+        "description": "Staff-curated neighbourhood facts for the listing's area.",
+        "properties": {
+          "flood_risk": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FloodRisk"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "garbage_collection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GarbageCollection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "is_demo": {
+            "title": "Is Demo",
+            "type": "boolean"
+          },
+          "location_name_ar": {
+            "title": "Location Name Ar",
+            "type": "string"
+          },
+          "location_name_en": {
+            "title": "Location Name En",
+            "type": "string"
+          },
+          "location_slug": {
+            "title": "Location Slug",
+            "type": "string"
+          },
+          "noise_notes_ar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Noise Notes Ar"
+          },
+          "noise_notes_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Noise Notes En"
+          },
+          "quiet_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiet Score"
+          },
+          "safety_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safety Score"
+          },
+          "source_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Note"
+          },
+          "summary_ar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary Ar"
+          },
+          "summary_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary En"
+          },
+          "theft_reports_12m": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Theft Reports 12M"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "location_slug",
+          "location_name_en",
+          "location_name_ar",
+          "safety_score",
+          "theft_reports_12m",
+          "quiet_score",
+          "noise_notes_en",
+          "noise_notes_ar",
+          "garbage_collection",
+          "flood_risk",
+          "summary_en",
+          "summary_ar",
+          "source_note",
+          "is_demo",
+          "updated_at"
+        ],
+        "title": "AreaProfileOut",
+        "type": "object"
+      },
+      "AskHit": {
+        "additionalProperties": false,
+        "properties": {
+          "listing": {
+            "$ref": "#/components/schemas/ListingPublic"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/ReasonOut"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "listing",
+          "score",
+          "reasons"
+        ],
+        "title": "AskHit",
+        "type": "object"
+      },
+      "AskRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "locale": {
+            "default": "en",
+            "enum": [
+              "en",
+              "ar"
+            ],
+            "title": "Locale",
+            "type": "string"
+          },
+          "query": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "AskRequest",
+        "type": "object"
+      },
+      "AskResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "clarification_ar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clarification Ar"
+          },
+          "clarification_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clarification En"
+          },
+          "query_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Query Id"
+          },
+          "relaxed": {
+            "items": {
+              "$ref": "#/components/schemas/RelaxationOut"
+            },
+            "title": "Relaxed",
+            "type": "array"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/AskHit"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "summary_ar": {
+            "title": "Summary Ar",
+            "type": "string"
+          },
+          "summary_en": {
+            "title": "Summary En",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "understood": {
+            "$ref": "#/components/schemas/Understood"
+          }
+        },
+        "required": [
+          "query_id",
+          "understood",
+          "summary_en",
+          "summary_ar",
+          "clarification_en",
+          "clarification_ar",
+          "relaxed",
+          "results",
+          "total"
+        ],
+        "title": "AskResponse",
+        "type": "object"
+      },
       "Body_attach_api_v1_tickets__ticket_id__attachment_post": {
         "properties": {
           "file": {
@@ -489,6 +901,27 @@
         "title": "CommentOut",
         "type": "object"
       },
+      "ElectricitySupply": {
+        "description": "How the unit gets power — the #1 running-cost question in Lebanon.",
+        "enum": [
+          "edl_only",
+          "edl_plus_generator",
+          "generator_24_7",
+          "solar",
+          "solar_battery"
+        ],
+        "title": "ElectricitySupply",
+        "type": "string"
+      },
+      "FloodRisk": {
+        "enum": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "title": "FloodRisk",
+        "type": "string"
+      },
       "Furnished": {
         "enum": [
           "unfurnished",
@@ -496,6 +929,16 @@
           "furnished"
         ],
         "title": "Furnished",
+        "type": "string"
+      },
+      "GarbageCollection": {
+        "enum": [
+          "daily",
+          "several_weekly",
+          "weekly",
+          "irregular"
+        ],
+        "title": "GarbageCollection",
         "type": "string"
       },
       "HTTPValidationError": {
@@ -891,6 +1334,40 @@
             ],
             "title": "Description En"
           },
+          "electricity_supply": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ElectricitySupply"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "electricity_usd_month": {
+            "anyOf": [
+              {
+                "maximum": 5000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Electricity Usd Month"
+          },
+          "elevator_backup": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elevator Backup"
+          },
           "floor": {
             "anyOf": [
               {
@@ -914,10 +1391,51 @@
               }
             ]
           },
+          "generator_amps": {
+            "anyOf": [
+              {
+                "maximum": 100,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generator Amps"
+          },
+          "highlights": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 6,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Highlights"
+          },
           "location_id": {
             "format": "uuid",
             "title": "Location Id",
             "type": "string"
+          },
+          "parking_spots": {
+            "anyOf": [
+              {
+                "maximum": 20,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parking Spots"
           },
           "price_period": {
             "$ref": "#/components/schemas/PricePeriod"
@@ -930,6 +1448,52 @@
           },
           "property_type": {
             "$ref": "#/components/schemas/PropertyType"
+          },
+          "sewage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Sewage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "solar_ready": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Solar Ready"
+          },
+          "summer_comfort": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SummerComfort"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "things_to_know": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 6,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Things To Know"
           },
           "title_ar": {
             "anyOf": [
@@ -957,6 +1521,39 @@
           },
           "transaction_type": {
             "$ref": "#/components/schemas/TransactionType"
+          },
+          "water_source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WaterSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "water_usd_month": {
+            "anyOf": [
+              {
+                "maximum": 2000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water Usd Month"
+          },
+          "winter_comfort": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WinterComfort"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -973,6 +1570,16 @@
         "additionalProperties": false,
         "description": "Returned to people who can manage the listing.",
         "properties": {
+          "area": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AreaProfileOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "contact_whatsapp": {
             "anyOf": [
               {
@@ -1112,6 +1719,16 @@
       "ListingPublic": {
         "additionalProperties": false,
         "properties": {
+          "area": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AreaProfileOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "description": {
             "$ref": "#/components/schemas/LocalizedText"
           },
@@ -1305,6 +1922,40 @@
             ],
             "title": "Description En"
           },
+          "electricity_supply": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ElectricitySupply"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "electricity_usd_month": {
+            "anyOf": [
+              {
+                "maximum": 5000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Electricity Usd Month"
+          },
+          "elevator_backup": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elevator Backup"
+          },
           "floor": {
             "anyOf": [
               {
@@ -1328,6 +1979,34 @@
               }
             ]
           },
+          "generator_amps": {
+            "anyOf": [
+              {
+                "maximum": 100,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generator Amps"
+          },
+          "highlights": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 6,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Highlights"
+          },
           "location_id": {
             "anyOf": [
               {
@@ -1339,6 +2018,19 @@
               }
             ],
             "title": "Location Id"
+          },
+          "parking_spots": {
+            "anyOf": [
+              {
+                "maximum": 20,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parking Spots"
           },
           "price_period": {
             "anyOf": [
@@ -1373,6 +2065,52 @@
               }
             ]
           },
+          "sewage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Sewage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "solar_ready": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Solar Ready"
+          },
+          "summer_comfort": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SummerComfort"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "things_to_know": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 6,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Things To Know"
+          },
           "title_ar": {
             "anyOf": [
               {
@@ -1406,9 +2144,182 @@
                 "type": "null"
               }
             ]
+          },
+          "water_source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WaterSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "water_usd_month": {
+            "anyOf": [
+              {
+                "maximum": 2000,
+                "minimum": 0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water Usd Month"
+          },
+          "winter_comfort": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WinterComfort"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "title": "ListingUpdate",
+        "type": "object"
+      },
+      "LivingFactorsOut": {
+        "additionalProperties": false,
+        "description": "Publisher-reported running costs and comfort. Shown as 'reported by the publisher'.",
+        "properties": {
+          "electricity_supply": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ElectricitySupply"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "electricity_usd_month": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Electricity Usd Month"
+          },
+          "elevator_backup": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elevator Backup"
+          },
+          "generator_amps": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generator Amps"
+          },
+          "highlights": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Highlights",
+            "type": "array"
+          },
+          "parking_spots": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parking Spots"
+          },
+          "sewage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Sewage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "solar_ready": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Solar Ready"
+          },
+          "summer_comfort": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SummerComfort"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "things_to_know": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Things To Know",
+            "type": "array"
+          },
+          "water_source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WaterSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "water_usd_month": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water Usd Month"
+          },
+          "winter_comfort": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WinterComfort"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "LivingFactorsOut",
         "type": "object"
       },
       "LocalizedText": {
@@ -1720,6 +2631,7 @@
           "tickets.manage",
           "listings.moderate",
           "analytics.read",
+          "areas.manage",
           "mcp.access"
         ],
         "title": "Permission",
@@ -1855,6 +2767,13 @@
               }
             ]
           },
+          "living": {
+            "$ref": "#/components/schemas/LivingFactorsOut",
+            "default": {
+              "highlights": [],
+              "things_to_know": []
+            }
+          },
           "property_type": {
             "$ref": "#/components/schemas/PropertyType"
           }
@@ -1919,6 +2838,50 @@
           "organization_name"
         ],
         "title": "PublisherOut",
+        "type": "object"
+      },
+      "ReasonOut": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label_ar": {
+            "title": "Label Ar",
+            "type": "string"
+          },
+          "label_en": {
+            "title": "Label En",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "filter",
+              "listing",
+              "area"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "match",
+              "miss",
+              "unknown"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label_en",
+          "label_ar",
+          "status",
+          "source"
+        ],
+        "title": "ReasonOut",
         "type": "object"
       },
       "RegisterIn": {
@@ -1993,6 +2956,72 @@
         ],
         "title": "RegisterIn",
         "type": "object"
+      },
+      "RelaxationOut": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label_ar": {
+            "title": "Label Ar",
+            "type": "string"
+          },
+          "label_en": {
+            "title": "Label En",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label_en",
+          "label_ar"
+        ],
+        "title": "RelaxationOut",
+        "type": "object"
+      },
+      "Sewage": {
+        "enum": [
+          "public_network",
+          "septic_tank"
+        ],
+        "title": "Sewage",
+        "type": "string"
+      },
+      "Suggestion": {
+        "additionalProperties": false,
+        "description": "A predefined example prompt shown as a chip under the search box.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "text_ar": {
+            "title": "Text Ar",
+            "type": "string"
+          },
+          "text_en": {
+            "title": "Text En",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text_en",
+          "text_ar"
+        ],
+        "title": "Suggestion",
+        "type": "object"
+      },
+      "SummerComfort": {
+        "enum": [
+          "cool",
+          "moderate",
+          "hot"
+        ],
+        "title": "SummerComfort",
+        "type": "string"
       },
       "TicketCategory": {
         "enum": [
@@ -2329,6 +3358,187 @@
         "title": "TransactionType",
         "type": "string"
       },
+      "Understood": {
+        "additionalProperties": false,
+        "description": "What the parser extracted. The web turns these into editable filter chips.",
+        "properties": {
+          "bathrooms_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bathrooms Min"
+          },
+          "bedrooms_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bedrooms Min"
+          },
+          "furnished": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Furnished"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "location_name_ar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Name Ar"
+          },
+          "location_name_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Name En"
+          },
+          "location_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Slug"
+          },
+          "parking_spots": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parking Spots"
+          },
+          "preferences": {
+            "items": {
+              "$ref": "#/components/schemas/UnderstoodPreference"
+            },
+            "title": "Preferences",
+            "type": "array"
+          },
+          "price_max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Max"
+          },
+          "price_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Min"
+          },
+          "property_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PropertyType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sort": {
+            "enum": [
+              "newest",
+              "price_asc",
+              "price_desc"
+            ],
+            "title": "Sort",
+            "type": "string"
+          },
+          "transaction_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TransactionType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "transaction_type",
+          "property_type",
+          "location_slug",
+          "location_name_en",
+          "location_name_ar",
+          "price_min",
+          "price_max",
+          "bedrooms_min",
+          "bathrooms_min",
+          "furnished",
+          "parking_spots",
+          "preferences",
+          "sort"
+        ],
+        "title": "Understood",
+        "type": "object"
+      },
+      "UnderstoodPreference": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label_ar": {
+            "title": "Label Ar",
+            "type": "string"
+          },
+          "label_en": {
+            "title": "Label En",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label_en",
+          "label_ar"
+        ],
+        "title": "UnderstoodPreference",
+        "type": "object"
+      },
       "UserOut": {
         "additionalProperties": false,
         "properties": {
@@ -2442,6 +3652,16 @@
         "title": "ValidationError",
         "type": "object"
       },
+      "WaterSource": {
+        "enum": [
+          "municipal",
+          "well",
+          "tanker",
+          "mixed"
+        ],
+        "title": "WaterSource",
+        "type": "string"
+      },
       "WhatsAppHandoffOut": {
         "additionalProperties": false,
         "properties": {
@@ -2455,6 +3675,15 @@
         ],
         "title": "WhatsAppHandoffOut",
         "type": "object"
+      },
+      "WinterComfort": {
+        "enum": [
+          "warm",
+          "moderate",
+          "cold"
+        ],
+        "title": "WinterComfort",
+        "type": "string"
       }
     }
   },
@@ -2464,6 +3693,84 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/admin/areas": {
+      "get": {
+        "operationId": "list_areas_api_v1_admin_areas_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AreaProfileOut"
+                  },
+                  "title": "Response List Areas Api V1 Admin Areas Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Areas",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/areas/{location_id}": {
+      "put": {
+        "operationId": "upsert_area_api_v1_admin_areas__location_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "location_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Location Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AreaProfileIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upsert Area",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/v1/admin/permissions": {
       "get": {
         "operationId": "permissions_api_v1_admin_permissions_get",
@@ -4074,6 +5381,72 @@
         "summary": "My Tickets",
         "tags": [
           "tickets"
+        ]
+      }
+    },
+    "/api/v1/search/ask": {
+      "post": {
+        "operationId": "ask_api_v1_search_ask_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AskResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ask",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/v1/search/suggestions": {
+      "get": {
+        "operationId": "suggestions_api_v1_search_suggestions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Suggestion"
+                  },
+                  "title": "Response Suggestions Api V1 Search Suggestions Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Suggestions",
+        "tags": [
+          "search"
         ]
       }
     },

@@ -5,14 +5,17 @@ touching business rules, and guarantees one consistent rule for what is public. 
 WhatsApp number only ever appears in ``to_private``.
 """
 
-from typing import Literal
+from typing import Any, Literal
 
 from app.domain.events import ListingSnapshot
-from app.models import Listing
+from app.models import AreaProfile, Listing
 from app.models.enums import UserRole
 from app.schemas.listing import (
+    LIVING_FIELDS,
+    AreaProfileOut,
     ListingPrivate,
     ListingPublic,
+    LivingFactorsOut,
     LocalizedText,
     LocationBrief,
     MediaOut,
@@ -34,8 +37,37 @@ class ListingPresenter:
         kind: Literal["broker", "owner"] = "broker" if creator.role == UserRole.broker else "owner"
         return PublisherOut(type=kind, display_name=first_name, organization_name=None)
 
+    @staticmethod
+    def living(prop: Any) -> LivingFactorsOut:
+        return LivingFactorsOut(
+            **{f: getattr(prop, f) for f in LIVING_FIELDS if getattr(prop, f) is not None}
+        )
+
+    @staticmethod
+    def area(profile: AreaProfile | None) -> AreaProfileOut | None:
+        if profile is None:
+            return None
+        loc = profile.location
+        return AreaProfileOut(
+            location_slug=loc.slug,
+            location_name_en=loc.name_en,
+            location_name_ar=loc.name_ar,
+            safety_score=profile.safety_score,
+            theft_reports_12m=profile.theft_reports_12m,
+            quiet_score=profile.quiet_score,
+            noise_notes_en=profile.noise_notes_en,
+            noise_notes_ar=profile.noise_notes_ar,
+            garbage_collection=profile.garbage_collection,
+            flood_risk=profile.flood_risk,
+            summary_en=profile.summary_en,
+            summary_ar=profile.summary_ar,
+            source_note=profile.source_note,
+            is_demo=profile.is_demo,
+            updated_at=profile.updated_at,
+        )
+
     @classmethod
-    def to_public(cls, listing: Listing) -> ListingPublic:
+    def to_public(cls, listing: Listing, area: AreaProfile | None = None) -> ListingPublic:
         prop = listing.property
         loc = prop.location
         return ListingPublic(
@@ -54,6 +86,7 @@ class ListingPresenter:
                 floor=prop.floor,
                 furnished=prop.furnished,
                 amenities=list(prop.amenities or []),
+                living=cls.living(prop),
             ),
             location=LocationBrief(slug=loc.slug, name_en=loc.name_en, name_ar=loc.name_ar, path=loc.path),
             media=[
@@ -61,15 +94,18 @@ class ListingPresenter:
                 for m in listing.media
             ],
             publisher=cls.publisher(listing),
+            area=cls.area(area),
             published_at=listing.published_at,
             last_confirmed_at=listing.last_confirmed_at,
             is_demo=listing.is_demo,
         )
 
     @classmethod
-    def to_private(cls, listing: Listing, lead_count: int = 0) -> ListingPrivate:
+    def to_private(
+        cls, listing: Listing, lead_count: int = 0, area: AreaProfile | None = None
+    ) -> ListingPrivate:
         return ListingPrivate(
-            **cls.to_public(listing).model_dump(),
+            **cls.to_public(listing, area).model_dump(),
             contact_whatsapp=listing.contact_whatsapp_e164,
             expires_at=listing.expires_at,
             created_at=listing.created_at,

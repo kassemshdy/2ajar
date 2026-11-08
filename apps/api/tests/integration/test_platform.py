@@ -9,7 +9,7 @@ from starlette.requests import Request
 from app.core.logging import JsonFormatter, configure_logging
 from app.core.ratelimit import client_ip
 from app.db.session import get_sessionmaker
-from app.models import Listing, ListingMedia, Organization, User
+from app.models import AreaProfile, Listing, ListingMedia, Organization, Property, User
 from tests.conftest import create_listing, upload_photo
 
 
@@ -122,14 +122,24 @@ async def test_seed_demo_and_purge(settings: Any, monkeypatch: Any, capsys: Any)
         assert await s.scalar(select(func.count()).select_from(Organization).where(Organization.is_demo)) == 2
         demo_users = (await s.scalars(select(User.email).where(User.is_demo))).all()
         assert all(e.endswith("@demo.2ajar.invalid") for e in demo_users)
+        unfilled = select(func.count()).select_from(Property).where(Property.electricity_supply.is_(None))
+        assert await s.scalar(unfilled) == 0
+        demo_areas = (await s.scalars(select(AreaProfile))).all()
+        assert len(demo_areas) >= 20 and all(
+            a.is_demo and "[DEMO]" in (a.summary_en or "") for a in demo_areas
+        )
+    capsys.readouterr()
     assert await seed.main(demo=True) == 0  # idempotent
-    assert "demo listings created: 0" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "demo listings created: 0" in out and "demo area profiles created: 0" in out
+    assert "demo living factors filled: 0" in out
 
     assert await seed.main(purge=True) == 0
     async with get_sessionmaker()() as s:
         assert await s.scalar(select(func.count()).select_from(Listing)) == 0
         assert await s.scalar(select(func.count()).select_from(User)) == 0
         assert await s.scalar(select(func.count()).select_from(Organization)) == 0
+        assert await s.scalar(select(func.count()).select_from(AreaProfile)) == 0
 
     monkeypatch.setattr(settings, "env", "production")
     assert await seed.main(demo=True) == 2

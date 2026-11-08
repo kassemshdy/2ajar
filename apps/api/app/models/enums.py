@@ -18,6 +18,7 @@ class Permission(StrEnum):
     tickets_manage = "tickets.manage"
     listings_moderate = "listings.moderate"
     analytics_read = "analytics.read"
+    areas_manage = "areas.manage"
     mcp_access = "mcp.access"
 
 
@@ -141,3 +142,56 @@ class TicketCategory(StrEnum):
     bug = "bug"
     feedback = "feedback"
     question = "question"
+
+
+# ---------- living factors (publisher-reported, per property) ----------
+
+
+class ElectricitySupply(StrEnum):
+    """How the unit gets power — the #1 running-cost question in Lebanon."""
+
+    edl_only = "edl_only"  # state grid only (a few hours/day)
+    edl_plus_generator = "edl_plus_generator"  # grid + building/neighbourhood generator subscription
+    generator_24_7 = "generator_24_7"
+    solar = "solar"
+    solar_battery = "solar_battery"  # solar with batteries: near-24/7 without generator
+
+
+class WaterSource(StrEnum):
+    municipal = "municipal"
+    well = "well"
+    tanker = "tanker"  # bought by truck
+    mixed = "mixed"
+
+
+class Sewage(StrEnum):
+    public_network = "public_network"
+    septic_tank = "septic_tank"
+
+
+class WinterComfort(StrEnum):
+    warm = "warm"
+    moderate = "moderate"
+    cold = "cold"
+
+
+class SummerComfort(StrEnum):
+    cool = "cool"
+    moderate = "moderate"
+    hot = "hot"
+
+
+# ---------- area profile (staff-curated, per location) ----------
+
+
+class GarbageCollection(StrEnum):
+    daily = "daily"
+    several_weekly = "several_weekly"
+    weekly = "weekly"
+    irregular = "irregular"
+
+
+class FloodRisk(StrEnum):
+    low = "low"
+    medium = "medium"
+    high = "high"

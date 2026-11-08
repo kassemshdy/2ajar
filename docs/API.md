@@ -88,6 +88,22 @@ The publisher's WhatsApp number is **not** included; it is only exposed through 
 
 All of these return **404** for resources the caller cannot manage.
 
+## Smart search (plain text, rule-based, no LLM)
+
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/search/ask` | `{query (1–300 chars), locale: en\|ar}` → `AskResponse`: `understood` (parsed filters + preferences), `summary_en/ar`, `clarification_en/ar`, `relaxed[]`, `results[{listing, score, reasons[]}]`, `total`, `query_id`. Rate-limited (60 / 10 min). Logged in `search_queries`. |
+| GET | `/search/suggestions` | Predefined EN/AR example prompts (cacheable). |
+
+Each reason is `{key, label_en, label_ar, status: match\|miss\|unknown, source: filter\|listing\|area}`. Hard
+constraints are SQL filters; preferences only rank. `unknown` means the data was not reported. If nothing matches,
+budget (+20%), area (parent) and bedrooms (−1) are relaxed in that order and listed in `relaxed`.
+
+Listing payloads carry `property.living` (publisher-reported electricity, water, sewage, parking, solar-ready,
+elevator backup, winter/summer comfort, highlights, things to know) and, on detail and search results, `area`
+(staff-curated profile of the listing's area or its nearest ancestor). Demo area profiles are only returned when
+`DEMO_MODE=true`.
+
 ## Tickets (signed-in users)
 
 | Method | Path | Notes |
@@ -113,6 +129,8 @@ All of these return **404** for resources the caller cannot manage.
 | GET | `/admin/tickets?status=&priority=&q=&assignee_id=` | `tickets.read` |
 | PATCH | `/admin/tickets/{id}` `{status?, priority?, category?, assignee_user_id?}` | `tickets.manage` |
 | GET | `/admin/stats` | `analytics.read` |
+| GET | `/admin/areas` | `areas.manage` |
+| PUT | `/admin/areas/{location_id}` `{safety_score?, quiet_score?, theft_reports_12m?, noise_notes_en/ar?, garbage_collection?, flood_risk?, summary_en/ar?, source_note?}` (replaces; audit logged) | `areas.manage` |
 
 ## MCP
 

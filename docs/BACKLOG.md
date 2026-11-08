@@ -114,6 +114,14 @@ AC: superuser bootstrapped from env; staff role + named permissions + per-user g
 with lock-out guards; floating bug button (signed-in) → tickets with private screenshots, internal notes and
 triage; MCP server with personal tokens and permission-checked tools; EN/AR UI; tests ≥ gates; e2e flow.
 
+### B-035 ✅ Plain-text smart search + living factors
+AC: home page free-text box (EN/AR/Arabizi) with predefined prompts, no paid API; hard filters in SQL, preferences
+rank; reasons with match/miss/unknown and source; reported relaxation; clarification for vague queries; query log;
+living factors on listings (electricity, water, sewage, parking, solar, elevator backup, comfort, highlights);
+staff-curated area profiles (safety, thefts, noise, garbage, flooding) with admin editor; MCP `ask_search`;
+tests ≥ gates; e2e.
+Follow-ups: CSV import columns for living factors; grow phrase tables from `search_queries`.
+
 ## M2 — Seeker polish
 - B-031a ⬜ Favorites (table, API, UI heart). AC: auth required; idempotent add/remove; only public listings.
 - B-031 ⬜ Email verification & password reset (no paid provider until approved; SMTP via env).

@@ -19,6 +19,7 @@ export function AdminShell({ need, children }: { need: Permission; children: Rea
   const tabs = [
     { href: "/admin/tickets", label: t("tickets"), show: can("tickets.read") },
     { href: "/admin/users", label: t("users"), show: can("users.read") },
+    { href: "/admin/areas", label: t("areas"), show: can("areas.manage") },
     { href: "/settings/tokens", label: tNav("tokens"), show: can("mcp.access") },
   ].filter((x) => x.show);
 

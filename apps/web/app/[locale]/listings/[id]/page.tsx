@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import type { ListingPublic } from "@2ajar/contracts";
 import { ContactPanel } from "@/components/contact-panel";
 import { DemoBanner } from "@/components/demo-banner";
+import { AreaInfo, LivingHere } from "@/components/living-here";
 import { Badge, Card } from "@/components/ui/card";
 import { apiGet, getPublicConfig } from "@/lib/api-server";
 import { formatDate, formatUsd, listingTitle, localized, locationName } from "@/lib/format";
@@ -123,6 +124,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               </ul>
             </section>
           ) : null}
+
+          {p.living ? <LivingHere living={p.living} /> : null}
+
+          {listing.area ? <AreaInfo area={listing.area} /> : null}
 
           {description ? (
             <section>

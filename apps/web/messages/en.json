@@ -150,7 +150,17 @@
     "uploading": "Uploading…",
     "remove": "Remove",
     "publishNow": "Publish listing",
-    "published": "Your listing is live."
+    "published": "Your listing is live.",
+    "livingHint": "Optional, but searches like “24/7 electricity” or “low bills” rank listings with these answers higher. Leave blank if unsure.",
+    "generatorAmps": "Generator subscription (amps)",
+    "electricityBill": "Typical electricity bill ($/month)",
+    "waterBill": "Typical water cost ($/month)",
+    "parkingSpots": "Parking spots",
+    "solarReady": "Can solar panels be installed?",
+    "elevatorBackup": "Elevator works during power cuts?",
+    "yes": "Yes",
+    "no": "No",
+    "onePerLine": "One per line, up to 6"
   },
   "enums": {
     "rent": "Rent",
@@ -284,7 +294,8 @@
     "role_broker": "Broker",
     "role_staff": "Staff",
     "role_platform_admin": "Platform admin",
-    "edit": "Edit"
+    "edit": "Edit",
+    "areas": "Areas"
   },
   "tokens": {
     "title": "API tokens",
@@ -302,5 +313,109 @@
     "mcpConfig": "MCP client configuration",
     "noAccess": "Your account cannot create API tokens.",
     "empty": "No tokens yet."
+  },
+  "ask": {
+    "placeholder": "Describe your ideal home… e.g. quiet 2 bedroom in Hamra under $900 with 24/7 electricity",
+    "label": "Ask in plain words (English, Arabic or Arabizi)",
+    "submit": "Ask",
+    "tryThese": "Try:",
+    "orFilters": "Prefer classic filters?",
+    "title": "Smart search",
+    "understood": "What we understood",
+    "relaxed": "No exact match, so we adjusted:",
+    "results": "{count, plural, =0 {No matching homes yet} one {# matching home} other {# matching homes}}",
+    "showing": "Showing the best {shown} of {total}",
+    "refine": "Refine with filters",
+    "noResults": "Nothing matches yet. Try a nearby area or a higher budget.",
+    "howItWorks": "Answers use only what publishers reported and our team's area notes. “Not reported” means we don't know — we never guess.",
+    "match": "Yes",
+    "miss": "No",
+    "unknown": "Not reported",
+    "sourceFilter": "matches your search",
+    "sourceListing": "reported by the publisher",
+    "sourceArea": "area info by the 2ajar team",
+    "why": "Why this home",
+    "error": "Search is temporarily unavailable. Please use the filters."
+  },
+  "living": {
+    "title": "Living here",
+    "reported": "Reported by the publisher",
+    "electricity": "Electricity",
+    "electricityBill": "~{amount}/month electricity",
+    "amps": "{amps} A subscription",
+    "water": "Water",
+    "waterBill": "~{amount}/month water",
+    "sewage": "Sewage",
+    "parking": "{count, plural, =0 {No parking} one {# parking spot} other {# parking spots}}",
+    "solarReady": "Roof/balcony can take solar panels",
+    "notSolarReady": "Solar panels not possible",
+    "elevatorBackup": "Elevator works during power cuts",
+    "noElevatorBackup": "Elevator stops during power cuts",
+    "winter": "Winter",
+    "summer": "Summer",
+    "highlights": "Highlights",
+    "thingsToKnow": "Things to know",
+    "electricitySupply": {
+      "edl_only": "EDL only",
+      "edl_plus_generator": "EDL + generator",
+      "generator_24_7": "24/7 generator",
+      "solar": "Solar",
+      "solar_battery": "Solar + batteries (24/7)"
+    },
+    "waterSource": {
+      "municipal": "Municipal (state) water",
+      "well": "Private well",
+      "tanker": "Water trucks",
+      "mixed": "Mixed sources"
+    },
+    "sewageKind": {
+      "public_network": "Public sewage network",
+      "septic_tank": "Septic tank"
+    },
+    "winterComfort": {
+      "warm": "Warm",
+      "moderate": "Moderate",
+      "cold": "Cold"
+    },
+    "summerComfort": {
+      "cool": "Cool",
+      "moderate": "Moderate",
+      "hot": "Hot"
+    }
+  },
+  "area": {
+    "title": "About the neighbourhood",
+    "curated": "Curated by the 2ajar team · updated {date}",
+    "demo": "Demo values — not real statistics",
+    "safety": "Safety",
+    "quiet": "Quiet",
+    "score": "{score}/5",
+    "thefts": "{count, plural, =0 {No theft reports} one {# theft report} other {# theft reports}} (12 months)",
+    "garbage": "Garbage collection",
+    "flood": "Flood risk",
+    "noise": "Noise",
+    "source": "Source: {source}",
+    "garbageKind": {
+      "daily": "Daily",
+      "several_weekly": "Several times a week",
+      "weekly": "Weekly",
+      "irregular": "Irregular"
+    },
+    "floodKind": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    }
+  },
+  "adminAreas": {
+    "intro": "Neighbourhood facts shown on listings and used by smart search (“safe”, “quiet”, “few thefts”…). A profile on a district or governorate also covers the areas below it. Saving marks the profile as reviewed (no longer demo).",
+    "location": "Area",
+    "thefts": "Theft reports in the last 12 months",
+    "source": "Source",
+    "sourceHint": "Where the numbers come from (e.g. municipality, ISF report, field visit).",
+    "summaryEn": "Summary (English)",
+    "summaryAr": "Summary (Arabic)",
+    "save": "Save area profile",
+    "saved": "Area profile saved"
   }
 }
