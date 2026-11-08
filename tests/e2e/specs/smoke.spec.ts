@@ -5,9 +5,14 @@ async function expectNoHorizontalScroll(page: import("@playwright/test").Page) {
   expect(overflow).toBeLessThanOrEqual(1);
 }
 
-test("root redirects to English home with search", async ({ page }) => {
+test("root opens the Arabic home (primary language)", async ({ page }) => {
   await page.goto("/");
-  await expect(page).toHaveURL(/\/en$/);
+  await expect(page).toHaveURL(/\/ar$/);
+  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+});
+
+test("English home with search", async ({ page }) => {
+  await page.goto("/en");
   await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Find your next home");
   await expect(page.getByTestId("ask-box")).toBeVisible();
