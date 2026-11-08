@@ -33,7 +33,7 @@ from app.models import Listing, ListingMedia, Property
 from app.models.enums import ListingEventType, ListingStatus, PricePeriod, TransactionType, UserRole
 from app.repositories.listings import ListingRepository, SearchCriteria, as_ref
 from app.repositories.locations import LocationDirectory
-from app.schemas.listing import ListingCreate, ListingUpdate
+from app.schemas.listing import LIVING_FIELDS, ListingCreate, ListingUpdate
 from app.services.audit import AuditTrail, record_event
 from app.services.contact import WhatsAppLinkBuilder
 from app.services.images import process_image
@@ -153,6 +153,7 @@ class ListingService:
             floor=data.floor,
             furnished=data.furnished,
             amenities=[a.value for a in (data.amenities or [])],
+            **{f: getattr(data, f) for f in LIVING_FIELDS if getattr(data, f) is not None},
         )
         self.repo.add(prop)
         await self.repo.flush()
@@ -194,6 +195,14 @@ class ListingService:
         for key in _PROPERTY_FIELDS:
             if key in changes:  # explicit null clears the value
                 setattr(prop, key, changes[key])
+        for key in LIVING_FIELDS:
+            if key in changes:  # explicit null clears the value; lists default to empty
+                value = changes[key]
+                setattr(
+                    prop,
+                    key,
+                    value if value is not None or key not in ("highlights", "things_to_know") else [],
+                )
         if "amenities" in changes:
             prop.amenities = [str(getattr(a, "value", a)) for a in (changes["amenities"] or [])]
         for key in _TEXT_FIELDS:

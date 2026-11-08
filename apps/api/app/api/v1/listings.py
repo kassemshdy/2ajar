@@ -11,6 +11,7 @@ from fastapi.responses import PlainTextResponse
 
 from app.api.deps import CurrentUser, OptionalPrincipal, OptionalUser, PrincipalDep, principal_of
 from app.api.providers import (
+    AreaServiceDep,
     ContactServiceDep,
     ImporterDep,
     LeadServiceDep,
@@ -117,10 +118,13 @@ async def import_listings(
 
 @router.get("/{listing_id}", response_model=ListingPublic | ListingPrivate)
 async def detail(
-    listing_id: uuid.UUID, p: OptionalPrincipal, service: ListingServiceDep
+    listing_id: uuid.UUID, p: OptionalPrincipal, service: ListingServiceDep, areas: AreaServiceDep
 ) -> ListingPublic | ListingPrivate:
     listing = await service.get_visible(listing_id, p)
-    return present.to_private(listing) if service.can_manage(p, listing) else present.to_public(listing)
+    area = await areas.for_location(listing.property.location_id)
+    if service.can_manage(p, listing):
+        return present.to_private(listing, area=area)
+    return present.to_public(listing, area)
 
 
 @router.patch("/{listing_id}", response_model=ListingPrivate)

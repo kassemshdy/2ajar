@@ -6,12 +6,14 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, Request
 
 from app.api.deps import SessionDep, require_permission
-from app.api.providers import TicketServiceDep, UserAdminDep
+from app.api.providers import AreaServiceDep, TicketServiceDep, UserAdminDep
 from app.authz.policies import Principal
 from app.models.enums import Permission, TicketPriority, TicketStatus, UserRole
 from app.schemas.admin import AdminUserOut, AdminUserUpdate, PermissionInfo
 from app.schemas.common import Page
+from app.schemas.listing import AreaProfileIn, AreaProfileOut
 from app.schemas.tickets import TicketOut, TicketSummary, TicketUpdate
+from app.services.presenters import ListingPresenter
 from app.services.stats import PlatformStats
 from app.services.tickets import TicketPresenter
 from app.services.user_admin import permission_catalog, present_user
@@ -84,3 +86,20 @@ async def update_ticket(
 @router.get("/stats")
 async def stats(_: AnalyticsRead, session: SessionDep) -> dict[str, object]:
     return await PlatformStats(session).snapshot()
+
+
+AreasManage = Annotated[Principal, Depends(require_permission(Permission.areas_manage))]
+
+
+@router.get("/areas", response_model=list[AreaProfileOut])
+async def list_areas(_: AreasManage, areas: AreaServiceDep) -> list[AreaProfileOut]:
+    return [out for a in await areas.list_all() if (out := ListingPresenter.area(a)) is not None]
+
+
+@router.put("/areas/{location_id}", response_model=AreaProfileOut)
+async def upsert_area(
+    location_id: uuid.UUID, data: AreaProfileIn, request: Request, p: AreasManage, areas: AreaServiceDep
+) -> AreaProfileOut:
+    out = ListingPresenter.area(await areas.upsert(p, location_id, data, request))
+    assert out is not None
+    return out

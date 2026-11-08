@@ -25,17 +25,33 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.core.security import hash_password, utcnow
 from app.db.session import get_sessionmaker
-from app.models import Listing, ListingMedia, Location, Organization, OrganizationMember, Property, User
+from app.models import (
+    AreaProfile,
+    Listing,
+    ListingMedia,
+    Location,
+    Organization,
+    OrganizationMember,
+    Property,
+    User,
+)
 from app.models.enums import (
     Amenity,
+    ElectricitySupply,
+    FloodRisk,
     Furnished,
+    GarbageCollection,
     ListingStatus,
     LocationLevel,
     OrgRole,
     PricePeriod,
     PropertyType,
+    Sewage,
+    SummerComfort,
     TransactionType,
     UserRole,
+    WaterSource,
+    WinterComfort,
 )
 from app.repositories.locations import LocationDirectory
 from app.services.superuser import ensure_superuser
@@ -333,6 +349,98 @@ async def seed_demo(session: AsyncSession, count: int = 30) -> int:
     return count
 
 
+DEMO_AREA_NOTE = "Synthetic demo values, not real statistics"
+DEMO_HIGHLIGHTS = (
+    ("Lots of natural light", "إضاءة طبيعية كثيرة"),
+    ("Walking distance to shops", "قريب من المحلات سيراً"),
+    ("Recently renovated kitchen", "مطبخ مجدد حديثاً"),
+    ("Open view from the balcony", "إطلالة مفتوحة من الشرفة"),
+)
+DEMO_THINGS_TO_KNOW = (
+    ("Generator subscription paid separately", "اشتراك المولد يُدفع منفصلاً"),
+    ("Street can be busy at rush hour", "الشارع مزدحم وقت الذروة"),
+    ("Water tank on the roof", "خزان مياه على السطح"),
+)
+
+
+async def seed_demo_living(session: AsyncSession) -> int:
+    """Fill living factors on demo properties that have none yet (idempotent; safe on every deploy)."""
+    props = list(
+        (
+            await session.scalars(
+                select(Property).where(Property.is_demo.is_(True), Property.electricity_supply.is_(None))
+            )
+        ).all()
+    )
+    for prop in props:
+        rng = random.Random(str(prop.id))  # stable per property
+        supply = rng.choice(list(ElectricitySupply))
+        amps = (
+            None
+            if supply in (ElectricitySupply.edl_only, ElectricitySupply.solar)
+            else rng.choice((5, 10, 15))
+        )
+        bill = {
+            ElectricitySupply.edl_only: rng.randint(10, 30),
+            ElectricitySupply.edl_plus_generator: rng.randint(50, 140),
+            ElectricitySupply.generator_24_7: rng.randint(80, 200),
+            ElectricitySupply.solar: rng.randint(10, 40),
+            ElectricitySupply.solar_battery: rng.randint(15, 50),
+        }[supply]
+        water = rng.choice(list(WaterSource))
+        lang = 0 if rng.random() < 0.5 else 1
+        prop.electricity_supply = supply
+        prop.generator_amps = amps
+        prop.electricity_usd_month = bill
+        prop.water_source = water
+        prop.water_usd_month = (
+            rng.randint(8, 18) if water in (WaterSource.municipal, WaterSource.well) else rng.randint(20, 60)
+        )
+        prop.sewage = Sewage.public_network if rng.random() < 0.8 else Sewage.septic_tank
+        prop.parking_spots = rng.choice((0, 1, 1, 2))
+        prop.solar_ready = rng.random() < 0.5
+        prop.elevator_backup = (
+            rng.random() < 0.7 if Amenity.elevator.value in (prop.amenities or []) else None
+        )
+        prop.winter_comfort = rng.choice(list(WinterComfort))
+        prop.summer_comfort = rng.choice(list(SummerComfort))
+        prop.highlights = [h[lang] for h in rng.sample(DEMO_HIGHLIGHTS, 2)]
+        prop.things_to_know = [t[lang] for t in rng.sample(DEMO_THINGS_TO_KNOW, 1)]
+    await session.commit()
+    return len(props)
+
+
+async def seed_demo_areas(session: AsyncSession) -> int:
+    """Create clearly-marked demo area profiles for demo areas that have no profile (never overwrites)."""
+    existing = set((await session.scalars(select(AreaProfile.location_id))).all())
+    areas = (await session.scalars(select(Location).where(Location.slug.in_(AREA_PRICE)))).all()
+    created = 0
+    for loc in areas:
+        if loc.id in existing:
+            continue
+        rng = random.Random(loc.slug)
+        safety = rng.randint(2, 5)
+        session.add(
+            AreaProfile(
+                location_id=loc.id,
+                safety_score=safety,
+                theft_reports_12m=rng.randint(0, 6) if safety >= 4 else rng.randint(5, 30),
+                quiet_score=rng.randint(2, 5),
+                garbage_collection=rng.choice(list(GarbageCollection)),
+                flood_risk=rng.choice((FloodRisk.low, FloodRisk.low, FloodRisk.medium, FloodRisk.high)),
+                noise_notes_en="[DEMO] Example note: some barking dogs at night.",
+                noise_notes_ar="[تجريبي] ملاحظة مثال: نباح كلاب أحياناً ليلاً.",
+                summary_en=f"[DEMO] Illustrative profile for {loc.name_en}. {DEMO_AREA_NOTE}.",
+                summary_ar=f"[تجريبي] ملف توضيحي لمنطقة {loc.name_ar}. قيم تجريبية وليست إحصاءات حقيقية.",
+                source_note=DEMO_AREA_NOTE,
+                is_demo=True,
+            )
+        )
+        created += 1
+    await session.commit()
+    return created
+
+
 async def purge_demo(session: AsyncSession) -> int:
     """Delete all demo listings, properties, accounts and organizations (and their stored photos)."""
     storage = get_storage()
@@ -346,6 +454,7 @@ async def purge_demo(session: AsyncSession) -> int:
     listing_ids = list((await session.scalars(select(Listing.id).where(Listing.is_demo.is_(True)))).all())
     await session.execute(delete(Listing).where(Listing.is_demo.is_(True)))
     await session.execute(delete(Property).where(Property.is_demo.is_(True)))
+    await session.execute(delete(AreaProfile).where(AreaProfile.is_demo.is_(True)))
     demo_users = select(User.id).where(User.is_demo.is_(True))
     await session.execute(delete(OrganizationMember).where(OrganizationMember.user_id.in_(demo_users)))
     await session.execute(delete(User).where(User.is_demo.is_(True)))
@@ -374,6 +483,8 @@ async def main(demo: bool = False, purge: bool = False) -> int:
         if demo:
             n = await seed_demo(session)
             print(f"demo listings created: {n} (is_demo=true; visible only when DEMO_MODE=true)")
+            print(f"demo living factors filled: {await seed_demo_living(session)}")
+            print(f"demo area profiles created: {await seed_demo_areas(session)}")
     return 0
 
 

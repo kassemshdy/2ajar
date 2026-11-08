@@ -2,20 +2,29 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 
 from app.models.enums import (
     Amenity,
+    ElectricitySupply,
+    FloodRisk,
     Furnished,
+    GarbageCollection,
     ListingStatus,
     LocationLevel,
     PricePeriod,
     PropertyType,
+    Sewage,
+    SummerComfort,
     TransactionType,
+    WaterSource,
+    WinterComfort,
 )
 from app.schemas.common import APIModel
 
 MAX_PRICE_USD = 100_000_000
+MAX_POINTS = 6  # highlights / things to know, like short bullet lists on a rental page
+MAX_POINT_LENGTH = 100
 
 
 class LocationOut(APIModel):
@@ -40,6 +49,47 @@ class _ListingFields(APIModel):
     floor: int | None = Field(default=None, ge=-5, le=100)
     furnished: Furnished | None = None
     amenities: list[Amenity] | None = Field(default=None, max_length=len(Amenity))
+    # Living factors, reported by the publisher
+    electricity_supply: ElectricitySupply | None = None
+    generator_amps: int | None = Field(default=None, ge=1, le=100)
+    electricity_usd_month: int | None = Field(default=None, ge=0, le=5000)
+    water_source: WaterSource | None = None
+    water_usd_month: int | None = Field(default=None, ge=0, le=2000)
+    sewage: Sewage | None = None
+    parking_spots: int | None = Field(default=None, ge=0, le=20)
+    solar_ready: bool | None = None
+    elevator_backup: bool | None = None
+    winter_comfort: WinterComfort | None = None
+    summer_comfort: SummerComfort | None = None
+    highlights: list[str] | None = Field(default=None, max_length=MAX_POINTS)
+    things_to_know: list[str] | None = Field(default=None, max_length=MAX_POINTS)
+
+    @field_validator("highlights", "things_to_know")
+    @classmethod
+    def _clean_points(cls, v: list[str] | None) -> list[str] | None:
+        if v is None:
+            return None
+        cleaned = [p.strip() for p in v if p and p.strip()]
+        if any(len(p) > MAX_POINT_LENGTH for p in cleaned):
+            raise ValueError(f"Each point must be at most {MAX_POINT_LENGTH} characters")
+        return cleaned
+
+
+LIVING_FIELDS = (
+    "electricity_supply",
+    "generator_amps",
+    "electricity_usd_month",
+    "water_source",
+    "water_usd_month",
+    "sewage",
+    "parking_spots",
+    "solar_ready",
+    "elevator_backup",
+    "winter_comfort",
+    "summer_comfort",
+    "highlights",
+    "things_to_know",
+)
 
 
 def _check_period(tx: TransactionType | None, period: PricePeriod | None) -> None:
@@ -77,6 +127,57 @@ class LocalizedText(APIModel):
     ar: str | None
 
 
+class LivingFactorsOut(APIModel):
+    """Publisher-reported running costs and comfort. Shown as 'reported by the publisher'."""
+
+    electricity_supply: ElectricitySupply | None = None
+    generator_amps: int | None = None
+    electricity_usd_month: int | None = None
+    water_source: WaterSource | None = None
+    water_usd_month: int | None = None
+    sewage: Sewage | None = None
+    parking_spots: int | None = None
+    solar_ready: bool | None = None
+    elevator_backup: bool | None = None
+    winter_comfort: WinterComfort | None = None
+    summer_comfort: SummerComfort | None = None
+    highlights: list[str] = []
+    things_to_know: list[str] = []
+
+
+class AreaProfileOut(APIModel):
+    """Staff-curated neighbourhood facts for the listing's area."""
+
+    location_slug: str
+    location_name_en: str
+    location_name_ar: str
+    safety_score: int | None
+    theft_reports_12m: int | None
+    quiet_score: int | None
+    noise_notes_en: str | None
+    noise_notes_ar: str | None
+    garbage_collection: GarbageCollection | None
+    flood_risk: FloodRisk | None
+    summary_en: str | None
+    summary_ar: str | None
+    source_note: str | None
+    is_demo: bool
+    updated_at: datetime
+
+
+class AreaProfileIn(APIModel):
+    safety_score: int | None = Field(default=None, ge=1, le=5)
+    theft_reports_12m: int | None = Field(default=None, ge=0, le=100_000)
+    quiet_score: int | None = Field(default=None, ge=1, le=5)
+    noise_notes_en: str | None = Field(default=None, max_length=300)
+    noise_notes_ar: str | None = Field(default=None, max_length=300)
+    garbage_collection: GarbageCollection | None = None
+    flood_risk: FloodRisk | None = None
+    summary_en: str | None = Field(default=None, max_length=2000)
+    summary_ar: str | None = Field(default=None, max_length=2000)
+    source_note: str | None = Field(default=None, max_length=300)
+
+
 class PropertyOut(APIModel):
     property_type: PropertyType
     bedrooms: int | None
@@ -85,6 +186,7 @@ class PropertyOut(APIModel):
     floor: int | None
     furnished: Furnished | None
     amenities: list[str]
+    living: LivingFactorsOut = LivingFactorsOut()
 
 
 class LocationBrief(APIModel):
@@ -119,6 +221,7 @@ class ListingPublic(APIModel):
     location: LocationBrief
     media: list[MediaOut]
     publisher: PublisherOut
+    area: AreaProfileOut | None = None  # filled on detail pages and smart-search results
     published_at: datetime | None
     last_confirmed_at: datetime | None
     is_demo: bool

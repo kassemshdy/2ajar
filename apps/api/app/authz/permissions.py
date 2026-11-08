@@ -18,6 +18,7 @@ ROLE_PERMISSIONS: dict[UserRole, frozenset[Permission]] = {
             Permission.tickets_manage,
             Permission.listings_moderate,
             Permission.analytics_read,
+            Permission.areas_manage,
             Permission.mcp_access,
         }
     ),
