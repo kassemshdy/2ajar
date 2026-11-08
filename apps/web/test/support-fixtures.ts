@@ -8,7 +8,7 @@ export const staffUser: User = {
   role: "staff",
   locale: "en",
   memberships: [],
-  permissions: ["analytics.read", "listings.moderate", "mcp.access", "tickets.manage", "tickets.read", "users.read"],
+  permissions: ["analytics.read", "areas.manage", "listings.moderate", "mcp.access", "tickets.manage", "tickets.read", "users.read"],
 };
 
 export const adminUser: User = { ...staffUser, id: "admin-1", role: "platform_admin", full_name: "Ada Admin",

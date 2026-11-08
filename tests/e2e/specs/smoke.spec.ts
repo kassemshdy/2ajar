@@ -10,6 +10,8 @@ test("root redirects to English home with search", async ({ page }) => {
   await expect(page).toHaveURL(/\/en$/);
   await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Find your next home");
+  await expect(page.getByTestId("ask-box")).toBeVisible();
+  await page.getByText("Prefer classic filters?").click();
   await expect(page.getByTestId("search-form")).toBeVisible();
   await expectNoHorizontalScroll(page);
 });

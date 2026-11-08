@@ -1,6 +1,6 @@
 import "server-only";
-import { cookies } from "next/headers";
-import type { Location } from "@2ajar/contracts";
+import { cookies, headers as requestHeaders } from "next/headers";
+import type { Location, Suggestion } from "@2ajar/contracts";
 
 const API = process.env.API_INTERNAL_URL ?? "http://localhost:8000";
 
@@ -32,6 +32,28 @@ export async function apiGet<T>(path: string, opts: GetOptions = {}): Promise<T 
   return (await res.json()) as T;
 }
 
+/**
+ * Anonymous POST from SSR on behalf of the visitor (read-only actions such as smart search). Forwards the edge's
+ * X-Forwarded-For unchanged so the API rate-limits the visitor rather than this server. No cookies are sent.
+ */
+export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const incoming = await requestHeaders();
+  const headers: Record<string, string> = {
+    accept: "application/json",
+    "content-type": "application/json",
+  };
+  const forwarded = incoming.get("x-forwarded-for");
+  if (forwarded) headers["x-forwarded-for"] = forwarded;
+  const res = await fetch(`${API}/api/v1${path}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new ServerApiError(res.status);
+  return (await res.json()) as T;
+}
+
 /** Reference data (locations, public config) changes only on deploy. */
 export const REFERENCE_TTL = 300;
 
@@ -50,4 +72,8 @@ export async function getPublicConfig(): Promise<PublicConfig> {
   const cfg = await apiGet<PublicConfig>("/config", { revalidate: REFERENCE_TTL });
   if (!cfg) throw new ServerApiError(404);
   return cfg;
+}
+
+export function getSuggestions() {
+  return apiGet<Suggestion[]>("/search/suggestions", { revalidate: REFERENCE_TTL });
 }

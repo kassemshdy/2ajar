@@ -1,7 +1,7 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { listing, locations } from "@/test/fixtures";
+import { emptyLiving, listing, locations } from "@/test/fixtures";
 import { routerMock } from "@/test/setup";
 import { json, mockFetch, renderWithIntl } from "@/test/utils";
 import { ListingForm } from "./listing-form";
@@ -22,6 +22,13 @@ describe("ListingForm (create)", () => {
     await user.click(screen.getByLabelText("Sea view"));
     await user.type(screen.getByLabelText("Title (English)"), "Flat");
     await user.type(screen.getByLabelText("WhatsApp number for inquiries"), "70123456");
+    await user.selectOptions(screen.getByLabelText("Electricity"), "edl_plus_generator");
+    await user.type(screen.getByLabelText("Generator subscription (amps)"), "10");
+    await user.type(screen.getByLabelText("Typical electricity bill ($/month)"), "90");
+    await user.selectOptions(screen.getByLabelText("Can solar panels be installed?"), "yes");
+    await user.selectOptions(screen.getByLabelText("Elevator works during power cuts?"), "no");
+    await user.selectOptions(screen.getByLabelText("Winter"), "warm");
+    await user.type(screen.getByLabelText("Highlights"), "Sunny{enter}{enter}  Quiet street ");
     await user.click(screen.getByTestId("save-listing"));
     await waitFor(() => expect(routerMock.push).toHaveBeenCalledWith("/dashboard/listings/new-id/edit"));
     expect(JSON.parse(calls.find((c) => c.method !== "GET")!.init.body as string)).toEqual({
@@ -29,6 +36,10 @@ describe("ListingForm (create)", () => {
       price_period: "yearly", bedrooms: 2, bathrooms: null, area_sqm: null, floor: null, furnished: null,
       amenities: ["sea_view"], title_en: "Flat", title_ar: null, description_en: null, description_ar: null,
       contact_whatsapp: "70123456",
+      electricity_supply: "edl_plus_generator", generator_amps: 10, electricity_usd_month: 90,
+      water_source: null, water_usd_month: null, sewage: null, parking_spots: null, solar_ready: true,
+      elevator_backup: false, winter_comfort: "warm", summer_comfort: null,
+      highlights: ["Sunny", "Quiet street"], things_to_know: [],
     });
   });
 
@@ -51,6 +62,9 @@ describe("ListingForm (create)", () => {
 describe("ListingForm (edit)", () => {
   it("loads, saves, uploads, removes photos and publishes", async () => {
     let current = listing({ media: [{ id: "m1", url: "/media/a.webp", width: 10, height: 10 }] });
+    current.property.living = {
+      ...emptyLiving, solar_ready: false, elevator_backup: true, parking_spots: 2, highlights: ["A", "B"],
+    };
     const calls = mockFetch({
       [`GET /api/v1/listings/${ID}`]: () => json(current),
       [`PATCH /api/v1/listings/${ID}`]: () => json(current),
@@ -68,7 +82,10 @@ describe("ListingForm (edit)", () => {
     await user.click(screen.getByTestId("save-listing"));
     expect(await screen.findByTestId("form-notice")).toHaveTextContent("Saved");
     const patch = calls.find((c) => c.method === "PATCH")!;
-    expect(JSON.parse(patch.init.body as string)).toMatchObject({ amenities: ["parking"], furnished: "furnished" });
+    expect(JSON.parse(patch.init.body as string)).toMatchObject({
+      amenities: ["parking"], furnished: "furnished", solar_ready: false, elevator_backup: true, parking_spots: 2,
+      highlights: ["A", "B"],
+    });
 
     const file = new File(["x"], "p.jpg", { type: "image/jpeg" });
     await user.upload(screen.getByTestId("photo-input"), [file, file]);
