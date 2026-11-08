@@ -88,9 +88,30 @@ class TransactionType(StrEnum):
 
 
 class PricePeriod(StrEnum):
+    """2ajar is rentals of any length: from an hour (day-use chalet, pool, hall) to years."""
+
+    hourly = "hourly"
+    daily = "daily"
+    nightly = "nightly"
+    weekly = "weekly"
     monthly = "monthly"
     yearly = "yearly"
-    total = "total"
+    total = "total"  # legacy: sale listings, no longer accepted (2ajar is rentals only)
+
+
+class Stay(StrEnum):
+    """How long people rent for; groups price periods for search and browsing."""
+
+    hours = "hours"  # hourly / day use
+    nights = "nights"  # nightly / weekly (chalets, holiday homes)
+    months = "months"  # monthly / yearly (homes)
+
+
+STAY_PERIODS: dict[Stay, tuple[PricePeriod, ...]] = {
+    Stay.hours: (PricePeriod.hourly, PricePeriod.daily),
+    Stay.nights: (PricePeriod.nightly, PricePeriod.weekly),
+    Stay.months: (PricePeriod.monthly, PricePeriod.yearly),
+}
 
 
 class ListingStatus(StrEnum):

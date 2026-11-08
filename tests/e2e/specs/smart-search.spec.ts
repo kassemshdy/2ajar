@@ -24,7 +24,7 @@ test("plain-text search from the home page explains every result", async ({ page
 
   // Detail page shows publisher-reported living factors and the (demo-labelled) area profile.
   // Only seeded demo listings (with living factors) exist in Jounieh; other specs create theirs in Beirut.
-  await results.filter({ hasText: "DEMO" }).first().getByTestId("listing-card").click();
+  await results.filter({ hasText: "DEMO" }).first().getByTestId("listing-tile").click();
   await expect(page.getByTestId("living-here")).toBeVisible();
   await expect(page.getByTestId("area-info")).toContainText("Demo values");
 });

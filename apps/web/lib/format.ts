@@ -1,4 +1,4 @@
-import type { ListingPublic, Location } from "@2ajar/contracts";
+import type { ListingPublic, Location, PricePeriod } from "@2ajar/contracts";
 
 const numberLocale = (locale: string) => (locale === "ar" ? "ar-LB-u-nu-latn" : "en-US");
 
@@ -25,4 +25,28 @@ export function locationName(loc: Pick<Location, "name_en" | "name_ar">, locale:
 
 export function listingTitle(listing: ListingPublic, locale: string) {
   return localized(listing.title, locale);
+}
+
+const PERIOD_SUFFIX: Record<PricePeriod, string | null> = {
+  hourly: "perHour",
+  daily: "perDay",
+  nightly: "perNight",
+  weekly: "perWeek",
+  monthly: "perMonth",
+  yearly: "perYear",
+  total: null,
+};
+
+/** Message key (in the "listing" namespace) for the price suffix, e.g. "/night". */
+export function periodSuffixKey(period: PricePeriod): string | null {
+  return PERIOD_SUFFIX[period] ?? null;
+}
+
+export type StayKind = "hours" | "nights" | "months";
+
+/** Which kind of stay a price period belongs to (mirrors the API's STAY_PERIODS). */
+export function stayOf(period: PricePeriod): StayKind {
+  if (period === "hourly" || period === "daily") return "hours";
+  if (period === "nightly" || period === "weekly") return "nights";
+  return "months";
 }

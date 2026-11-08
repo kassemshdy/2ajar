@@ -34,6 +34,7 @@ API_DIR = Path(__file__).resolve().parents[1]
 BASE_URL = "http://testserver.local"
 PASSWORD = "correct-horse-battery"
 MUTABLE_TABLES = [
+    "favorites",
     "search_queries",
     "area_profiles",
     "ticket_comments",

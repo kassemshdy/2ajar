@@ -17,7 +17,8 @@ def to_response(result: AskResult) -> AskResponse:
     return AskResponse(
         query_id=result.query_id,
         understood=Understood(
-            transaction_type=q.transaction,
+            stay=q.stay,
+            guests_min=q.guests_min,
             property_type=q.property_type,
             location_slug=q.location.slug if q.location else None,
             location_name_en=q.location.name_en if q.location else None,

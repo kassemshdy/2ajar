@@ -44,6 +44,7 @@ class ListingRef:
     status: ListingStatus
     expires_at: datetime | None
     is_demo: bool
+    is_rental: bool = True  # 2ajar is rentals only; legacy sale listings are never public
 
 
 def can_create_listing(p: Principal) -> bool:
@@ -68,6 +69,8 @@ def is_publicly_visible(listing: ListingRef, now: datetime, demo_mode: bool) -> 
     if listing.status != ListingStatus.published:
         return False
     if listing.expires_at is not None and listing.expires_at <= now:
+        return False
+    if not listing.is_rental:
         return False
     return not (listing.is_demo and not demo_mode)
 

@@ -5,7 +5,7 @@ import { AskBox } from "@/components/ask/ask-box";
 import { ReasonList } from "@/components/ask/reason-list";
 import { Understood } from "@/components/ask/understood";
 import { DemoBanner } from "@/components/demo-banner";
-import { ListingCard } from "@/components/listing-card";
+import { ListingTile } from "@/components/listing-tile";
 import { Alert, Card } from "@/components/ui/card";
 import { apiPost, getPublicConfig, getSuggestions } from "@/lib/api-server";
 
@@ -70,7 +70,7 @@ export default async function AskPage({
               <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {answer.results.map((hit) => (
                   <li key={hit.listing.id} className="flex flex-col gap-3" data-testid="ask-result">
-                    <ListingCard listing={hit.listing} />
+                    <ListingTile listing={hit.listing} />
                     <ReasonList reasons={hit.reasons} />
                   </li>
                 ))}

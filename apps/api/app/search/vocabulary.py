@@ -3,16 +3,29 @@
 Includes common Lebanese spellings and Arabizi (Arabic in Latin letters, e.g. "2ijar", "sha2a", "gherfeh").
 """
 
-from app.models.enums import Furnished, PropertyType, TransactionType
+from app.models.enums import Furnished, PropertyType, Stay
 
-TRANSACTION: dict[TransactionType, tuple[str, ...]] = {
-    TransactionType.rent: (
-        "for rent", "to rent", "rent", "renting", "rental", "lease", "monthly", "per month", "/month",
-        "ijar", "2ijar", "ajar", "2ajar", "للايجار", "ايجار", "استيجار", "استئجار", "بالشهر", "شهري",
+# 2ajar is rentals only. Sale words are recognised so the answer can say so, never used as a filter.
+SALE_WORDS = (
+    "for sale", "to buy", "buy", "buying", "purchase", "للبيع", "شراء", "اشتري", "lal bay3", "bay3",
+)  # fmt: skip
+
+# How long people want to rent for (hours → years). Bare "night"/"hour" are left out on purpose: "quiet at
+# night" or "24 hour electricity" are not stay lengths. Counted forms ("3 nights", "2 hours") are matched by the
+# parser's regex instead.
+STAYS: dict[Stay, tuple[str, ...]] = {
+    Stay.hours: (
+        "per hour", "by the hour", "hourly", "few hours", "couple of hours", "day use", "for the day",
+        "per day", "daily", "بالساعه", "لساعات", "ساعتين", "استعمال نهاري", "نهار واحد", "باليوم", "sa3a",
     ),
-    TransactionType.sale: (
-        "for sale", "to buy", "buy", "buying", "purchase", "sale", "own", "للبيع", "بيع", "شراء", "اشتري",
-        "lal bay3", "bay3",
+    Stay.nights: (
+        "per night", "a night", "nightly", "overnight", "weekend", "week end", "per week", "weekly",
+        "a week", "holiday", "vacation", "getaway", "short stay", "بالليله", "ليلتين", "ليالي", "ويكند",
+        "عطله", "نهايه الاسبوع", "اسبوع", "بالاسبوع", "layle", "leile",
+    ),
+    Stay.months: (
+        "per month", "a month", "monthly", "per year", "a year", "yearly", "annual", "long term", "long stay",
+        "months", "years", "بالشهر", "شهري", "شهريا", "اشهر", "بالسنه", "سنوي", "سنتين", "chahri", "shahri",
     ),
 }  # fmt: skip
 
@@ -58,6 +71,13 @@ LOCATION_ALIASES: dict[str, tuple[str, ...]] = {
     "mount-lebanon": ("jabal lebnan", "mount lebanon", "جبل لبنان"),
     "metn": ("matn", "el metn", "al matn", "المتن"),
     "keserwan": ("kesrouan", "kesrwan", "kesrwen"),
+    "faraya": ("farayya", "faraia", "mzaar", "مزار"),
+    "faqra": ("fakra", "faqra club"),
+    "kfardebian": ("kfardebiane", "kfar debian", "كفردبيان"),
+    "byblos": ("jbeil", "jbail", "jbeyl"),
+    "laqlouq": ("lakluk", "laklouk", "لقلوق"),
+    "batroun": ("batroon", "el batroun"),
+    "jiyeh": ("jieh", "jiye", "جيه"),
     "beirut": ("beyrouth", "bayrout", "بيروت"),
 }  # fmt: skip
 

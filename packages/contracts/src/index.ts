@@ -50,3 +50,6 @@ export type Suggestion = S["Suggestion"];
 export type LivingFactors = S["LivingFactorsOut"];
 export type AreaProfile = S["AreaProfileOut"];
 export type AreaProfileInput = S["AreaProfileIn"];
+export type DiscoverOut = S["DiscoverOut"];
+export type NearbyListing = S["NearbyListing"];
+export type Stay = S["Stay"];

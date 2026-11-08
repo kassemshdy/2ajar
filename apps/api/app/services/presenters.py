@@ -84,6 +84,7 @@ class ListingPresenter:
                 bathrooms=prop.bathrooms,
                 area_sqm=prop.area_sqm,
                 floor=prop.floor,
+                max_guests=prop.max_guests,
                 furnished=prop.furnished,
                 amenities=list(prop.amenities or []),
                 living=cls.living(prop),

@@ -122,8 +122,15 @@ staff-curated area profiles (safety, thefts, noise, garbage, flooding) with admi
 tests ≥ gates; e2e.
 Follow-ups: CSV import columns for living factors; grow phrase tables from `search_queries`.
 
+### B-036 ✅ Rentals of any length + Airbnb-style discovery
+AC: rentals only (sale rejected, legacy hidden); hourly→yearly periods, stays filter, max guests; chalet areas and demo
+chalets/day-use; home category bar and rows (near you, recently added, chalets, by the hour, most viewed, great
+value, top-rated neighbourhoods); favorites (heart, Saved page); listing page photo mosaic, sticky contact card,
+similar homes nearby; EN/AR; tests ≥ gates; e2e.
+Follow-ups: availability calendar / booking requests for short stays; guest reviews once stays exist.
+
 ## M2 — Seeker polish
-- B-031a ⬜ Favorites (table, API, UI heart). AC: auth required; idempotent add/remove; only public listings.
+- B-031a ✅ Favorites (done in B-036).
 - B-031 ⬜ Email verification & password reset (no paid provider until approved; SMTP via env).
 - B-032 ⬜ SEO: metadata, OpenGraph per listing, sitemap.xml of public listings, hreflang ar/en.
 - B-033 ⬜ Presigned direct uploads + worker image processing (thumbnails).

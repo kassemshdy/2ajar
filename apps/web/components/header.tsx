@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, LayoutDashboard, LifeBuoy, LogOut, Shield } from "lucide-react";
+import { Building2, Heart, LayoutDashboard, LifeBuoy, LogOut, Shield } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useSession } from "@/lib/session";
@@ -24,7 +24,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2 font-bold text-primary" aria-label="2ajar home">
           <Building2 className="size-6" aria-hidden />
           <span className="text-lg">{locale === "ar" ? "إيجار" : "2ajar"}</span>
@@ -41,6 +41,15 @@ export function Header() {
                   <span className="hidden sm:inline">{t("admin")}</span>
                 </Link>
               ) : null}
+              <Link
+                href="/saved"
+                className={buttonVariants({ variant: "ghost", size: "sm" })}
+                aria-label={t("saved")}
+                data-testid="nav-saved"
+              >
+                <Heart className="size-4" aria-hidden />
+                <span className="hidden md:inline">{t("saved")}</span>
+              </Link>
               <Link href="/tickets" className={buttonVariants({ variant: "ghost", size: "sm" })} aria-label={t("tickets")}>
                 <LifeBuoy className="size-4" aria-hidden />
               </Link>

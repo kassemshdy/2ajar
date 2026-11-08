@@ -8,21 +8,29 @@ from typing import Any
 import pytest
 
 from app.db.session import get_sessionmaker
-from app.models.enums import Furnished, PropertyType, TransactionType
+from app.models.enums import Furnished, PropertyType, Stay
 from app.repositories.locations import LocationDirectory
 from app.search.parser import ParsedQuery, QueryParser
 from app.search.suggestions import SUGGESTIONS
 from app.search.text import consume_phrase, contains_phrase, is_arabic, normalize
 
-R, S = TransactionType.rent, TransactionType.sale
-CHECKED = ("transaction", "property_type", "location", "price_min", "price_max", "bedrooms_min", "furnished")
+CHECKED = (
+    "stay",
+    "guests_min",
+    "sale_requested",
+    "property_type",
+    "location",
+    "price_min",
+    "price_max",
+    "bedrooms_min",
+    "furnished",
+)
 
 CORPUS: list[tuple[str, dict[str, Any], set[str]]] = [
     # (query, expected hard fields, expected preference keys)
     (
         "Furnished 2 bedroom in Hamra under $1,000 with 24/7 electricity",
         {
-            "transaction": R,
             "location": "hamra",
             "price_max": 1000,
             "bedrooms_min": 2,
@@ -33,7 +41,6 @@ CORPUS: list[tuple[str, dict[str, Any], set[str]]] = [
     (
         "شقة بغرفتين بالحمرا مفروشة حتى ١٠٠٠ دولار مع مولد",
         {
-            "transaction": R,
             "property_type": PropertyType.apartment,
             "location": "hamra",
             "price_max": 1000,
@@ -44,13 +51,12 @@ CORPUS: list[tuple[str, dict[str, Any], set[str]]] = [
     ),
     (
         "bade chi 2 ghoraf bl achrafieh ma3 moteur ta7et 800",
-        {"transaction": R, "location": "achrafieh", "price_max": 800, "bedrooms_min": 2},
+        {"location": "achrafieh", "price_max": 800, "bedrooms_min": 2},
         {"electricity_24_7"},
     ),
     (
         "studio in Mar Mikhael for rent",
         {
-            "transaction": R,
             "property_type": PropertyType.studio,
             "location": "mar-mikhael",
             "bedrooms_min": 0,
@@ -60,7 +66,7 @@ CORPUS: list[tuple[str, dict[str, Any], set[str]]] = [
     (
         "3 bedroom apartment for sale in Ras Beirut between 200k and 350k",
         {
-            "transaction": S,
+            "sale_requested": True,
             "property_type": PropertyType.apartment,
             "location": "ras-beirut",
             "price_min": 200_000,
@@ -91,7 +97,7 @@ CORPUS: list[tuple[str, dict[str, Any], set[str]]] = [
     ),
     (
         "شقة مطلة على البحر للبيع في بيروت",
-        {"transaction": S, "property_type": PropertyType.apartment, "location": "beirut"},
+        {"sale_requested": True, "property_type": PropertyType.apartment, "location": "beirut"},
         {"sea_view"},
     ),
     (
@@ -108,9 +114,38 @@ CORPUS: list[tuple[str, dict[str, Any], set[str]]] = [
         {"property_type": PropertyType.apartment, "location": "baabda", "bedrooms_min": 3},
         {"quiet", "safe", "parking"},
     ),
-    ("1500$ max", {"transaction": R, "price_max": 1500}, set()),
-    ("under 1.2k", {"transaction": R, "price_max": 1200}, set()),
+    ("1500$ max", {"price_max": 1500}, set()),
+    ("under 1.2k", {"price_max": 1200}, set()),
     ("hello", {}, set()),
+    # Rentals of any length: hours → nights → months/years
+    (
+        "Chalet in Faraya for the weekend for 6 guests under $250 a night",
+        {
+            "stay": Stay.nights,
+            "guests_min": 6,
+            "property_type": PropertyType.chalet,
+            "location": "faraya",
+            "price_max": 250,
+        },
+        set(),
+    ),
+    (
+        "شاليه مع مسبح خاص في الجية بالساعة لـ10 أشخاص",
+        {"stay": Stay.hours, "guests_min": 10, "property_type": PropertyType.chalet, "location": "jiyeh"},
+        {"pool"},
+    ),
+    ("3 nights in Batroun", {"stay": Stay.nights, "location": "batroun"}, set()),
+    ("for 2 hours in jbeil", {"stay": Stay.hours, "location": "byblos"}, set()),
+    (
+        "apartment in hamra for 6 months",
+        {"stay": Stay.months, "property_type": PropertyType.apartment, "location": "hamra"},
+        set(),
+    ),
+    ("yearly lease in Verdun", {"stay": Stay.months, "location": "verdun"}, set()),
+    ("ويكند بكفرذبيان", {"stay": Stay.nights, "location": "kfardebian"}, set()),
+    # Not stay lengths
+    ("quiet at night in Hamra", {"location": "hamra"}, {"quiet"}),
+    ("24 hour electricity", {}, {"electricity_24_7"}),
 ]
 
 
@@ -122,7 +157,7 @@ async def parser() -> QueryParser:
 
 def _actual(q: ParsedQuery) -> dict[str, Any]:
     log = q.as_log()
-    return {k: log[k] for k in CHECKED if log[k] is not None}
+    return {k: log[k] for k in CHECKED if log[k] is not None and log[k] is not False}
 
 
 @pytest.mark.parametrize(("query", "hard", "prefs"), CORPUS, ids=[c[0][:40] for c in CORPUS])
@@ -159,7 +194,7 @@ async def test_every_suggestion_parses_to_constraints(parser: QueryParser) -> No
         for text in (s.text_en, s.text_ar):
             q = parser.parse(text)
             assert q.location is not None, text
-            assert q.preferences or q.transaction, text
+            assert q.preferences or q.stay or q.property_type, text
 
 
 def test_text_helpers() -> None:
@@ -175,10 +210,14 @@ def test_text_helpers() -> None:
 async def test_summaries_cover_all_constraints(parser: QueryParser) -> None:
     from app.search.engine import summarize
 
-    en, ar = summarize(parser.parse("semi furnished villa for sale in Baabda between 300k and 500k"))
-    assert en == "Semi-furnished villas for sale in Baabda between $300,000 and $500,000"
-    assert "فلل" in ar and "للبيع" in ar and "بين" in ar
+    en, ar = summarize(parser.parse("semi furnished villa monthly in Baabda between 3000 and 5000$"))
+    assert en == "Semi-furnished villas by the month or year in Baabda between $3,000 and $5,000"
+    assert "فلل" in ar and "بالشهر" in ar and "بين" in ar
     en, ar = summarize(parser.parse("studio in hamra from $500"))
-    assert en.startswith("Studio") and "from $500" in en and "ابتداءً" in ar
-    en, _ = summarize(parser.parse("apartment with 2 bedrooms"))
-    assert en == "2+ bedroom apartments"
+    assert en.startswith("Studio") and "to rent" in en and "from $500" in en and "ابتداءً" in ar
+    en, ar = summarize(parser.parse("apartment with 2 bedrooms"))
+    assert en == "2+ bedroom apartments to rent"
+    en, ar = summarize(parser.parse("chalet for 8 guests by the hour"))
+    assert en == "Chalets by the hour or day for 8+ guests" and "بالساعة" in ar and "لـ8" in ar
+    en, _ = summarize(parser.parse("weekend getaway in Batroun"))
+    assert en == "Homes for nights and weekends in Batroun"

@@ -28,7 +28,7 @@ from app.core.config import get_settings
 from app.core.errors import AppError
 from app.core.events import CollectingEventRecorder, get_event_bus
 from app.db.session import get_sessionmaker
-from app.models.enums import Furnished, Permission, TicketPriority, TicketStatus, TransactionType
+from app.models.enums import Furnished, Permission, Stay, TicketPriority, TicketStatus
 from app.repositories.listings import SearchCriteria
 from app.schemas.tickets import CommentCreate, TicketUpdate
 from app.search.engine import SmartSearch
@@ -165,18 +165,21 @@ async def platform_stats() -> dict[str, object]:
 @server.tool()
 async def search_listings(
     location: str | None = None,
-    transaction_type: Literal["rent", "sale"] | None = None,
+    stay: Literal["hours", "nights", "months"] | None = None,
     price_max: int | None = None,
     bedrooms_min: int | None = None,
     furnished: Literal["unfurnished", "semi", "furnished"] | None = None,
     limit: int = 10,
 ) -> dict[str, Any]:
-    """Search public listings (published and fresh, like the website). Location is a slug, e.g. 'hamra'."""
+    """Search public rentals (published and fresh, like the website). Location is a slug, e.g. 'hamra'.
+
+    stay: hours (hourly/day use), nights (nightly/weekly, e.g. chalets) or months (monthly/yearly).
+    """
     _require()
     async with get_sessionmaker()() as session:
         service = ListingService(session, settings=get_settings(), events=CollectingEventRecorder())
         criteria = SearchCriteria(
-            transaction_type=TransactionType(transaction_type) if transaction_type else None,
+            stay=Stay(stay) if stay else None,
             price_max=price_max,
             bedrooms_min=bedrooms_min,
             furnished=Furnished(furnished) if furnished else None,

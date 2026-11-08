@@ -88,6 +88,23 @@ The publisher's WhatsApp number is **not** included; it is only exposed through 
 
 All of these return **404** for resources the caller cannot manage.
 
+## Rentals only, any length
+
+2ajar lists rentals only: `transaction_type` defaults to `rent` and `sale` is rejected (422); legacy sale listings
+are never public. `price_period` is `hourly | daily | nightly | weekly | monthly | yearly`, grouped into stays:
+`hours` (hourly, daily), `nights` (nightly, weekly), `months` (monthly, yearly). `GET /listings` accepts
+`stay` and `guests_min` (matches `property.max_guests`).
+
+## Discovery and favorites
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/discover` | Home rows: `recent`, `nights`, `hours`, `most_viewed[{listing, visitors_30d}]` (distinct visitors, 30 days), `great_value[{listing, below_area_median_pct}]` (≥15% under the area median price per m² among ≥3 monthly homes), `top_areas[{area, listing_count}]` (staff safety + quiet scores). Empty rows mean "nothing honest to show". |
+| GET | `/listings/nearby?lat&lng&stay?&limit?` | Closest public rentals within 40 km → `[{listing, distance_km}]`. Coordinates are not stored. Rate-limited. |
+| GET | `/listings/{id}/similar` | Nearest public rentals for the same kind of stay (404 if not public). |
+| GET | `/me/favorites`, `/me/favorites/ids` | Saved listings that are still public, newest save first. |
+| PUT / DELETE | `/me/favorites/{listing_id}` | Idempotent save / remove (`204`). Only public listings can be saved. |
+
 ## Smart search (plain text, rule-based, no LLM)
 
 | Method | Path | Notes |

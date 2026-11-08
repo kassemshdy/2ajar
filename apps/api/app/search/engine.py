@@ -16,7 +16,7 @@ from typing import Literal
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import AreaProfile, Listing, SearchQuery
-from app.models.enums import Furnished, PropertyType, TransactionType
+from app.models.enums import Furnished, PropertyType, Stay
 from app.repositories.listings import SearchCriteria
 from app.search.parser import ParsedQuery, QueryParser
 from app.search.preferences import Preference, Status, _parking
@@ -101,6 +101,20 @@ _FURN_EN = {
 _FURN_AR = {Furnished.furnished: "مفروشة", Furnished.semi: "نصف مفروشة", Furnished.unfurnished: "غير مفروشة"}
 
 
+_STAY_WORDS = {
+    Stay.hours: ("by the hour or day", "بالساعة أو اليوم"),
+    Stay.nights: ("for nights and weekends", "لليالي وعطل نهاية الأسبوع"),
+    Stay.months: ("by the month or year", "بالشهر أو السنة"),
+}
+_STAY_LABELS = {
+    Stay.hours: ("Rented by the hour or day", "إيجار بالساعة أو اليوم"),
+    Stay.nights: ("Rented by the night or week", "إيجار بالليلة أو الأسبوع"),
+    Stay.months: ("Rented by the month or year", "إيجار بالشهر أو السنة"),
+}
+RENTALS_ONLY_EN = "2ajar is for rentals only, from an hour to years. Here are rentals that match."
+RENTALS_ONLY_AR = "إيجار مخصّص للإيجار فقط، من ساعة إلى سنوات. هذه عروض إيجار مطابقة."
+
+
 def _usd(n: int) -> str:
     return f"${n:,}"
 
@@ -124,12 +138,12 @@ def summarize(q: ParsedQuery) -> tuple[str, str]:
         ar.append(f"من {q.bedrooms_min} غرف نوم أو أكثر")
     if q.furnished:
         ar.append(_FURN_AR[q.furnished])
-    if q.transaction == TransactionType.rent:
-        en.append("for rent")
-        ar.append("للإيجار")
-    elif q.transaction == TransactionType.sale:
-        en.append("for sale")
-        ar.append("للبيع")
+    stay_en, stay_ar = _STAY_WORDS[q.stay] if q.stay else ("to rent", "للإيجار")
+    en.append(stay_en)
+    ar.append(stay_ar)
+    if q.guests_min:
+        en.append(f"for {q.guests_min}+ guests")
+        ar.append(f"لـ{q.guests_min} ضيوف أو أكثر")
     if q.location:
         en.append(f"in {q.location.name_en}")
         ar.append(f"في {q.location.name_ar}")
@@ -167,6 +181,18 @@ def filter_reasons(q: ParsedQuery) -> list[Reason]:
         out.append(
             Reason("furnished", _FURN_EN[q.furnished].capitalize(), _FURN_AR[q.furnished], "match", "filter")
         )
+    if q.stay:
+        out.append(Reason("stay", *_STAY_LABELS[q.stay], "match", "filter"))
+    if q.guests_min:
+        out.append(
+            Reason(
+                "guests",
+                f"Fits {q.guests_min}+ guests",
+                f"يتّسع لـ{q.guests_min} ضيوف أو أكثر",
+                "match",
+                "filter",
+            )
+        )
     return out
 
 
@@ -195,13 +221,14 @@ class SmartSearch:
         parser = QueryParser(snapshot)
         q = parser.parse(query)
         criteria = SearchCriteria(
-            transaction_type=q.transaction,
             price_min=q.price_min,
             price_max=q.price_max,
             bedrooms_min=q.bedrooms_min if q.bedrooms_min else None,
             bathrooms_min=q.bathrooms_min,
             furnished=q.furnished,
             property_type=q.property_type,
+            stay=q.stay,
+            guests_min=q.guests_min,
             sort=q.sort,
             page=1,
             page_size=CANDIDATE_POOL,
@@ -227,9 +254,15 @@ class SmartSearch:
         clar_en = clar_ar = None
         if q.is_empty or (not q.has_hard_constraints and total > MAX_RESULTS):
             clar_en = (
-                "Which area and what monthly budget? For example: “2 bedrooms in Achrafieh under $1,200”."
+                "Which area, for how long and what budget? For example: “2 bedrooms in Achrafieh under "
+                "$1,200 a month” or “chalet in Faraya for the weekend for 6 guests”."
             )
-            clar_ar = "أي منطقة وما الميزانية الشهرية؟ مثلاً: «غرفتا نوم في الأشرفية حتى 1,200$»."
+            clar_ar = (
+                "أي منطقة، لأي مدة وما الميزانية؟ مثلاً: «غرفتا نوم في الأشرفية حتى 1,200$ بالشهر» "
+                "أو «شاليه في فاريا لعطلة نهاية الأسبوع لـ6 أشخاص»."
+            )
+        elif q.sale_requested:
+            clar_en, clar_ar = RENTALS_ONLY_EN, RENTALS_ONLY_AR
         summary_en, summary_ar = summarize(q)
         result = AskResult(
             q, summary_en, summary_ar, clar_en, clar_ar, relaxed, hits[:MAX_RESULTS], total, criteria

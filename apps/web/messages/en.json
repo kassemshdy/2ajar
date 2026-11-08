@@ -12,11 +12,12 @@
     "language": "العربية",
     "admin": "Admin",
     "tickets": "My tickets",
-    "tokens": "API tokens"
+    "tokens": "API tokens",
+    "saved": "Saved"
   },
   "home": {
     "headline": "Find your next home in Lebanon",
-    "subheadline": "Fresh, verified listings from owners and licensed brokers in Beirut and Mount Lebanon.",
+    "subheadline": "Rent anything from an hour to years: homes, chalets, day-use pools and rooms across Lebanon.",
     "latest": "Latest listings",
     "seeAll": "See all listings"
   },
@@ -41,7 +42,9 @@
     "priceAsc": "Price: low to high",
     "priceDesc": "Price: high to low",
     "search": "Search",
-    "reset": "Reset"
+    "reset": "Reset",
+    "stay": "Length of stay",
+    "guests": "Guests"
   },
   "results": {
     "count": "{count, plural, =0 {No listings found} one {# listing} other {# listings}}",
@@ -65,7 +68,19 @@
     "noPhotos": "No photos yet",
     "forRent": "For rent",
     "forSale": "For sale",
-    "notFound": "This listing is not available."
+    "notFound": "This listing is not available.",
+    "perHour": "/hour",
+    "perDay": "/day",
+    "perNight": "/night",
+    "perWeek": "/week",
+    "guests": "{count, plural, one {# guest} other {# guests}}",
+    "upToGuests": "Up to {count} guests",
+    "save": "Save",
+    "saved": "Saved",
+    "similar": "Similar homes nearby",
+    "kmAway": "{km} km away",
+    "hostedBy": "Listed by {name}",
+    "showAllPhotos": "Show all photos"
   },
   "contact": {
     "title": "Interested?",
@@ -160,7 +175,9 @@
     "elevatorBackup": "Elevator works during power cuts?",
     "yes": "Yes",
     "no": "No",
-    "onePerLine": "One per line, up to 6"
+    "onePerLine": "One per line, up to 6",
+    "maxGuests": "Maximum guests",
+    "pricePeriodHint": "From an hour to a year: pick how you charge."
   },
   "enums": {
     "rent": "Rent",
@@ -197,7 +214,11 @@
     "pool": "Pool",
     "garden": "Garden",
     "storage": "Storage",
-    "pets_allowed": "Pets allowed"
+    "pets_allowed": "Pets allowed",
+    "hourly": "Per hour",
+    "daily": "Per day",
+    "nightly": "Per night",
+    "weekly": "Per week"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -417,5 +438,72 @@
     "summaryAr": "Summary (Arabic)",
     "save": "Save area profile",
     "saved": "Area profile saved"
+  },
+  "stay": {
+    "hours": "By the hour",
+    "nights": "Nights & weekends",
+    "months": "Months & years",
+    "any": "Any length"
+  },
+  "discover": {
+    "categories": "Browse by type",
+    "nearYou": "Homes near you",
+    "nearYouHint": "See what's available around you. Your location is only used for this search and never saved.",
+    "useLocation": "Use my location",
+    "locating": "Finding homes near you…",
+    "locationDenied": "We couldn't get your location. You can still browse by area.",
+    "noneNearby": "No homes within 40 km yet.",
+    "recent": "Recently added",
+    "recentHint": "Fresh listings, confirmed available",
+    "nights": "Chalets & getaways",
+    "nightsHint": "By the night or week",
+    "hours": "By the hour or day",
+    "hoursHint": "Day-use chalets, pools and rooms",
+    "mostViewed": "Most viewed",
+    "mostViewedHint": "Visitors in the last 30 days",
+    "visitors": "{count, plural, one {# visitor} other {# visitors}} this month",
+    "greatValue": "Great value",
+    "greatValueHint": "Priced below the area's typical rent per m²",
+    "belowArea": "{pct}% below area price per m²",
+    "topAreas": "Top-rated neighbourhoods",
+    "topAreasHint": "Safety and quiet scores curated by the 2ajar team",
+    "homes": "{count, plural, one {# home} other {# homes}}",
+    "seeAll": "Show all",
+    "scrollPrev": "Previous",
+    "scrollNext": "Next",
+    "cat": {
+      "chalets": "Chalets",
+      "hourly": "By the hour",
+      "weekend": "Weekend",
+      "beach": "Beach",
+      "mountain": "Mountain",
+      "pool": "Pool",
+      "pets": "Pet friendly",
+      "furnished": "Furnished",
+      "power": "24/7 power",
+      "studios": "Studios",
+      "family": "Family homes",
+      "solar": "Solar"
+    },
+    "q": {
+      "chalets": "chalet",
+      "hourly": "by the hour",
+      "weekend": "weekend getaway",
+      "beach": "sea view",
+      "mountain": "mountain view",
+      "pool": "pool",
+      "pets": "pet friendly",
+      "furnished": "furnished apartment",
+      "power": "24/7 electricity",
+      "studios": "studio",
+      "family": "3 bedroom, safe and quiet area",
+      "solar": "solar power"
+    }
+  },
+  "saved": {
+    "title": "Saved",
+    "empty": "Tap the heart on any home to save it here.",
+    "explore": "Explore homes",
+    "loginToSave": "Log in to save homes"
   }
 }

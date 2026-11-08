@@ -1,5 +1,5 @@
 from app.models.activity import AuditLog, Lead, ListingEvent
-from app.models.insights import AreaProfile, SearchQuery
+from app.models.insights import AreaProfile, Favorite, SearchQuery
 from app.models.listing import Listing, ListingMedia, Property
 from app.models.location import Location
 from app.models.support import ApiToken, Ticket, TicketComment
@@ -9,6 +9,7 @@ __all__ = [
     "ApiToken",
     "AreaProfile",
     "AuditLog",
+    "Favorite",
     "Lead",
     "Listing",
     "ListingEvent",

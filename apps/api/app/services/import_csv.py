@@ -31,6 +31,7 @@ COLUMNS = [
     "bathrooms",
     "area_sqm",
     "floor",
+    "max_guests",
     "furnished",
     "amenities",
     "title_en",
@@ -39,8 +40,9 @@ COLUMNS = [
     "description_ar",
     "contact_whatsapp",
 ]
-REQUIRED = {"transaction_type", "property_type", "location", "price_usd"}
-INT_FIELDS = {"price_usd", "bedrooms", "bathrooms", "area_sqm", "floor"}
+# transaction_type is optional and defaults to "rent" (2ajar is rentals only; "sale" rows are rejected).
+REQUIRED = {"property_type", "location", "price_usd"}
+INT_FIELDS = {"price_usd", "bedrooms", "bathrooms", "area_sqm", "floor", "max_guests"}
 
 TEMPLATE_EXAMPLE = {
     "transaction_type": "rent",
@@ -52,6 +54,7 @@ TEMPLATE_EXAMPLE = {
     "bathrooms": "2",
     "area_sqm": "140",
     "floor": "4",
+    "max_guests": "",
     "furnished": "furnished",
     "amenities": "generator_24_7;parking;elevator",
     "title_en": "Bright 2-bedroom apartment in Achrafieh",
@@ -192,5 +195,6 @@ class ListingImporter:
                 errors.append(f"Unknown location '{values['location']}'")
             else:
                 payload["location_id"] = location.id
-        payload.setdefault("price_period", "total" if values["transaction_type"] == "sale" else "monthly")
+        payload.setdefault("transaction_type", "rent")
+        payload.setdefault("price_period", "monthly")
         return payload, errors

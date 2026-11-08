@@ -102,6 +102,18 @@ they live in `area_profiles`, editable by `areas.manage`, inherited by child are
 a source note, and labelled as coming from the 2ajar team. Demo profiles are synthetic, marked `[DEMO]`, hidden
 unless `DEMO_MODE=true`, and purged with demo data.
 
+## ADR-023 Rentals of any length, nothing for sale
+2ajar rents places from an hour (day-use chalets, pools, rooms) to years. Sale listings are rejected and legacy ones
+hidden; enums keep `sale`/`total` so no data is destroyed (expand-only migrations). Search groups periods into
+three stays (hours / nights / months) because people ask "for the weekend", not "nightly or weekly". There are no
+bookings or calendars yet: contact still goes through WhatsApp or a consented lead.
+
+## ADR-024 Discovery rows only show what the data supports
+Airbnb-style rows are honest by construction: "most viewed" counts distinct daily visitor hashes, "great value"
+needs at least three comparable homes in the same area, "top-rated neighbourhoods" uses the staff-curated scores
+(2ajar has no stays, so no guest ratings are shown or invented), and an empty row is hidden rather than padded.
+"Near you" asks for location only on click and never stores it.
+
 ---
 
 ## Assumptions

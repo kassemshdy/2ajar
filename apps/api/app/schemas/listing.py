@@ -47,6 +47,7 @@ class _ListingFields(APIModel):
     bathrooms: int | None = Field(default=None, ge=0, le=20)
     area_sqm: int | None = Field(default=None, ge=1, le=100_000)
     floor: int | None = Field(default=None, ge=-5, le=100)
+    max_guests: int | None = Field(default=None, ge=1, le=200)
     furnished: Furnished | None = None
     amenities: list[Amenity] | None = Field(default=None, max_length=len(Amenity))
     # Living factors, reported by the publisher
@@ -92,17 +93,18 @@ LIVING_FIELDS = (
 )
 
 
+RENTALS_ONLY = "2ajar lists rentals only (from an hour to years); sales are not accepted"
+
+
 def _check_period(tx: TransactionType | None, period: PricePeriod | None) -> None:
-    if tx is None or period is None:
-        return
-    if tx == TransactionType.rent and period == PricePeriod.total:
-        raise ValueError("Rent listings must be priced monthly or yearly")
-    if tx == TransactionType.sale and period != PricePeriod.total:
-        raise ValueError("Sale listings must use price_period 'total'")
+    if tx == TransactionType.sale:
+        raise ValueError(RENTALS_ONLY)
+    if period == PricePeriod.total:
+        raise ValueError("Choose a rental period: hourly, daily, nightly, weekly, monthly or yearly")
 
 
 class ListingCreate(_ListingFields):
-    transaction_type: TransactionType
+    transaction_type: TransactionType = TransactionType.rent
     property_type: PropertyType
     location_id: uuid.UUID
     price_usd: int = Field(gt=0, le=MAX_PRICE_USD)
@@ -120,6 +122,11 @@ class ListingUpdate(_ListingFields):
     location_id: uuid.UUID | None = None
     price_usd: int | None = Field(default=None, gt=0, le=MAX_PRICE_USD)
     price_period: PricePeriod | None = None
+
+    @model_validator(mode="after")
+    def _validate(self) -> "ListingUpdate":
+        _check_period(self.transaction_type, self.price_period)
+        return self
 
 
 class LocalizedText(APIModel):
@@ -184,6 +191,7 @@ class PropertyOut(APIModel):
     bathrooms: int | None
     area_sqm: int | None
     floor: int | None
+    max_guests: int | None = None
     furnished: Furnished | None
     amenities: list[str]
     living: LivingFactorsOut = LivingFactorsOut()

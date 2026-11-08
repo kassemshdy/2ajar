@@ -9,7 +9,16 @@ import { Button } from "./ui/button";
 import { Alert, Card } from "./ui/card";
 import { Field, Input, Textarea } from "./ui/input";
 
-export function ContactPanel({ listingId, consentVersion }: { listingId: string; consentVersion: string }) {
+export function ContactPanel({
+  listingId,
+  consentVersion,
+  header,
+}: {
+  listingId: string;
+  consentVersion: string;
+  /** Shown at the top of the card (the price on the listing page). */
+  header?: React.ReactNode;
+}) {
   const t = useTranslations("contact");
   const tErr = useTranslations("errors");
   const locale = useLocale();
@@ -59,7 +68,8 @@ export function ContactPanel({ listingId, consentVersion }: { listingId: string;
   }
 
   return (
-    <Card className="flex flex-col gap-4 p-4" data-testid="contact-panel">
+    <Card className="flex flex-col gap-4 rounded-2xl p-6 shadow-lg" data-testid="contact-panel">
+      {header}
       <h2 className="font-semibold">{t("title")}</h2>
       <Button variant="whatsapp" size="lg" onClick={openWhatsApp} disabled={opening} data-testid="whatsapp-button">
         <MessageCircle className="size-5" aria-hidden />

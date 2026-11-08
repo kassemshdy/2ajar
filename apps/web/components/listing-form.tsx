@@ -36,6 +36,7 @@ const lines = (v: FormDataEntryValue | null) =>
     .map((x) => x.trim())
     .filter(Boolean);
 
+const PERIODS = ["hourly", "daily", "nightly", "weekly", "monthly", "yearly"];
 const ELECTRICITY = ["edl_only", "edl_plus_generator", "generator_24_7", "solar", "solar_battery"];
 const WATER = ["municipal", "well", "tanker", "mixed"];
 const SEWAGE = ["public_network", "septic_tank"];
@@ -50,7 +51,6 @@ export function ListingForm({ locations, listingId }: { locations: Location[]; l
   const locale = useLocale();
   const router = useRouter();
   const [listing, setListing] = useState<ListingPrivate | null>(null);
-  const [tx, setTx] = useState<"rent" | "sale">("rent");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -60,7 +60,6 @@ export function ListingForm({ locations, listingId }: { locations: Location[]; l
     try {
       const l = await api<ListingPrivate>(`/listings/${listingId}`);
       setListing(l);
-      setTx(l.transaction_type);
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) router.replace("/login");
       else setError(errorText(e, tErr("generic")));
@@ -77,15 +76,16 @@ export function ListingForm({ locations, listingId }: { locations: Location[]; l
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const payload = {
-      transaction_type: tx,
+      transaction_type: "rent", // 2ajar is rentals only, from an hour to years
       property_type: fd.get("property_type"),
       location_id: fd.get("location_id"),
       price_usd: num(fd.get("price_usd")),
-      price_period: tx === "sale" ? "total" : fd.get("price_period"),
+      price_period: fd.get("price_period"),
       bedrooms: num(fd.get("bedrooms")),
       bathrooms: num(fd.get("bathrooms")),
       area_sqm: num(fd.get("area_sqm")),
       floor: num(fd.get("floor")),
+      max_guests: num(fd.get("max_guests")),
       furnished: str(fd.get("furnished")),
       amenities: fd.getAll("amenities"),
       title_en: str(fd.get("title_en")),
@@ -215,15 +215,6 @@ export function ListingForm({ locations, listingId }: { locations: Location[]; l
 
       <form onSubmit={submit} className="flex flex-col gap-6" key={l?.updated_at ?? "new"} data-testid="listing-form">
         <Card className="grid gap-4 p-4 sm:grid-cols-2">
-          <fieldset className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1 sm:col-span-2">
-            <legend className="sr-only">{t("transaction")}</legend>
-            {(["rent", "sale"] as const).map((v) => (
-              <label key={v} className="cursor-pointer rounded-md px-3 py-2 text-center text-sm font-medium has-[:checked]:bg-background has-[:checked]:shadow-sm">
-                <input type="radio" name="tx" value={v} checked={tx === v} onChange={() => setTx(v)} className="sr-only" />
-                {te(v)}
-              </label>
-            ))}
-          </fieldset>
           <Field label={t("propertyType")} htmlFor="property_type">
             <Select id="property_type" name="property_type" defaultValue={l?.property.property_type ?? "apartment"}>
               {PROPERTY_TYPES.map((v) => <option key={v} value={v}>{te(v)}</option>)}
@@ -242,16 +233,20 @@ export function ListingForm({ locations, listingId }: { locations: Location[]; l
           <Field label={t("price")} htmlFor="price_usd">
             <Input id="price_usd" name="price_usd" type="number" min={1} required inputMode="numeric" defaultValue={l?.price_usd} />
           </Field>
-          {tx === "rent" ? (
-            <Field label={t("pricePeriod")} htmlFor="price_period">
-              <Select id="price_period" name="price_period" defaultValue={l?.price_period === "yearly" ? "yearly" : "monthly"}>
-                <option value="monthly">{te("monthly")}</option>
-                <option value="yearly">{te("yearly")}</option>
-              </Select>
-            </Field>
-          ) : <div />}
+          <Field label={t("pricePeriod")} htmlFor="price_period" hint={t("pricePeriodHint")}>
+            <Select
+              id="price_period"
+              name="price_period"
+              defaultValue={l && l.price_period !== "total" ? l.price_period : "monthly"}
+            >
+              {PERIODS.map((v) => <option key={v} value={v}>{te(v)}</option>)}
+            </Select>
+          </Field>
           <Field label={t("bedrooms")} htmlFor="bedrooms">
             <Input id="bedrooms" name="bedrooms" type="number" min={0} max={20} defaultValue={l?.property.bedrooms ?? undefined} />
+          </Field>
+          <Field label={t("maxGuests")} htmlFor="max_guests">
+            <Input id="max_guests" name="max_guests" type="number" min={1} max={200} defaultValue={l?.property.max_guests ?? undefined} />
           </Field>
           <Field label={t("bathrooms")} htmlFor="bathrooms">
             <Input id="bathrooms" name="bathrooms" type="number" min={0} max={20} defaultValue={l?.property.bathrooms ?? undefined} />
