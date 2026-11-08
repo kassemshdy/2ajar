@@ -94,7 +94,7 @@ redeploy; existing sessions of that account are revoked. The password is never l
   `claude mcp add --transport http 2ajar https://<site>/api/v1/mcp --header "Authorization: Bearer 2ajar_..."`
 - Tools:
   - Tickets: `list_tickets`, `get_ticket`, `comment_on_ticket`, `update_ticket`.
-  - Read-only data: `platform_stats`, `search_listings`, `find_users`.
+  - Read-only data: `platform_stats`, `search_listings`, `ask_search` (plain-text smart search), `find_users`.
 - Each tool checks the token owner's *current* permissions.
 
 ## Telegram monitoring

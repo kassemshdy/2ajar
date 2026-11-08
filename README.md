@@ -3,7 +3,9 @@
 AI-first, trust-focused real-estate marketplace for Lebanon — residential rentals in Beirut and Mount Lebanon first.
 
 > Status: **Milestone 1 (vertical slice)** — register → create listing → browse → contact (WhatsApp / consented lead).
-> AI search is Milestone 3. Nothing is deployed yet; see `docs/DEPLOYMENT.md`.
+> Home-page **smart search** answers plain-text requests in Arabic, English and Arabizi with rule-based parsing (no
+> LLM or paid API), ranking by living factors (electricity, water, parking, comfort…) and staff-curated area facts
+> (safety, thefts, noise, garbage, flooding). LLM intent extraction remains Milestone 3. Deployment: `docs/DEPLOYMENT.md`.
 
 ## Repository
 
