@@ -13,6 +13,7 @@ from app.core.config import Settings, get_settings
 from app.core.events import BackgroundEventRecorder, EventRecorder, get_event_bus
 from app.repositories.locations import LocationDirectory
 from app.search.engine import SmartSearch
+from app.services.agencies import AgencyService
 from app.services.api_tokens import ApiTokenService
 from app.services.areas import AreaProfileService
 from app.services.auth import AccountService, TokenService
@@ -125,3 +126,10 @@ def get_discovery(
 
 
 DiscoveryDep = Annotated[DiscoveryService, Depends(get_discovery)]
+
+
+def get_agency_service(session: SessionDep, settings: SettingsDep) -> AgencyService:
+    return AgencyService(session, settings=settings)
+
+
+AgencyServiceDep = Annotated[AgencyService, Depends(get_agency_service)]

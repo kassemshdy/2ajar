@@ -215,6 +215,17 @@ class PublisherOut(APIModel):
     type: Literal["broker", "owner"]
     display_name: str
     organization_name: str | None
+    verified: bool = False  # checked by 2ajar staff (agency, or individual owner/broker)
+    agency_slug: str | None = None  # public agency page: /agencies/{slug}
+
+
+class ListingStats(APIModel):
+    """What happened to a listing in the last 30 days (shown to whoever manages it)."""
+
+    visitors_30d: int = 0
+    whatsapp_30d: int = 0
+    leads_30d: int = 0
+    saves: int = 0
 
 
 class ListingPublic(APIModel):
@@ -244,6 +255,7 @@ class ListingPrivate(ListingPublic):
     updated_at: datetime
     location_id: uuid.UUID
     lead_count: int = 0
+    stats: ListingStats | None = None
 
 
 class WhatsAppHandoffOut(APIModel):

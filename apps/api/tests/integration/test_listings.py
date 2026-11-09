@@ -15,11 +15,14 @@ async def test_full_vertical_slice(make_actor: Any, anon: Any, settings: Any) ->
     broker = await make_actor("broker", "broker@example.com", org="Cedar Homes")
     draft = await create_listing(broker)
     assert draft["status"] == "draft"
-    assert draft["publisher"] == {
+    publisher = draft["publisher"]
+    assert {k: publisher[k] for k in ("type", "display_name", "organization_name", "verified")} == {
         "type": "broker",
         "display_name": "Cedar Homes",
         "organization_name": "Cedar Homes",
+        "verified": False,
     }
+    assert publisher["agency_slug"].startswith("cedar-homes")
 
     # Drafts are invisible to the public
     assert (await anon.client.get(f"/api/v1/listings/{draft['id']}")).status_code == 404

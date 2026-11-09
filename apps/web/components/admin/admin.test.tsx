@@ -56,12 +56,14 @@ describe("AdminUsers", () => {
     expect(within(editor).queryByText("users.manage")).not.toBeInTheDocument(); // not grantable
     await user.click(within(editor).getByRole("checkbox", { name: /tickets\.read/ }));
     await user.click(within(editor).getByRole("checkbox", { name: "Active" }));
+    await user.click(within(editor).getByTestId("verified-owner"));
     await user.click(screen.getByTestId("user-save"));
     expect(await within(editor).findByText("Saved")).toBeInTheDocument();
     const patch = calls.find((c) => c.method === "PATCH")!;
     expect(JSON.parse(patch.init.body as string)).toEqual({
       role: "broker",
       is_active: false,
+      is_verified: true,
       extra_permissions: ["tickets.read"],
     });
     // Choosing the staff role implies its permissions (checked and locked)

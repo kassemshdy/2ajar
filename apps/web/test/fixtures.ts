@@ -42,7 +42,7 @@ export function listing(over: Partial<ListingPrivate> = {}): ListingPrivate {
     },
     location: { slug: "hamra", name_en: "Hamra", name_ar: "الحمرا", path: "beirut/hamra" },
     media: [],
-    publisher: { type: "broker", display_name: "Org", organization_name: "Org" },
+    publisher: { type: "broker", display_name: "Org", organization_name: "Org", verified: false, agency_slug: "org-abc123" },
     published_at: null,
     last_confirmed_at: null,
     is_demo: false,

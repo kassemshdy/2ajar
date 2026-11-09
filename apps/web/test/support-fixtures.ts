@@ -48,6 +48,7 @@ export function adminRow(over: Partial<AdminUser> = {}): AdminUser {
     role: "broker",
     is_active: true,
     is_demo: false,
+    is_verified: false,
     extra_permissions: [],
     permissions: [],
     memberships: [{ organization_id: "o-1", organization_name: "Cedar", role: "agency_admin" }],

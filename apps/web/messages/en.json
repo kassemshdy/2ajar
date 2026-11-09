@@ -336,7 +336,9 @@
     "role_platform_admin": "Platform admin",
     "edit": "Edit",
     "areas": "Areas",
-    "growth": "Growth"
+    "growth": "Growth",
+    "agencies": "Agencies",
+    "verifiedOwner": "Verified owner (badge on their listings)"
   },
   "tokens": {
     "title": "API tokens",
@@ -903,6 +905,134 @@
       "gym": "Gym",
       "security": "Security",
       "pets": "Pets allowed"
+    }
+  },
+  "publisher": {
+    "broker": "Broker",
+    "owner": "Owner",
+    "verified": "Verified",
+    "verifiedHint": "Checked by the 2ajar team",
+    "listedBy": "Listed by",
+    "seeAgency": "See all homes by {name}",
+    "agency": "Agency"
+  },
+  "agency": {
+    "since": "On 2ajar since {date}",
+    "members": "{count, plural, one {# agent} other {# agents}}",
+    "homes": "{count, plural, =0 {No homes listed right now} one {# home for rent} other {# homes for rent}}",
+    "share": "Copy link",
+    "copied": "Link copied",
+    "verifiedLong": "Verified agency: identity checked by the 2ajar team",
+    "notFound": "This agency was not found."
+  },
+  "stats": {
+    "title": "Last 30 days",
+    "hint": "Your monthly report: what renters did with your listings.",
+    "visitors": "{count, plural, one {# visitor} other {# visitors}}",
+    "whatsapp": "{count, plural, one {# WhatsApp tap} other {# WhatsApp taps}}",
+    "leads": "{count, plural, one {# contact request} other {# contact requests}}",
+    "saves": "{count, plural, one {# save} other {# saves}}",
+    "totalVisitors": "Visitors",
+    "totalWhatsapp": "WhatsApp taps",
+    "totalLeads": "Contact requests",
+    "totalSaves": "Saves"
+  },
+  "adminAgencies": {
+    "tab": "Agencies",
+    "intro": "Verify agencies after checking who they are (registration, office, phone). Verified agencies get a badge on every listing and on their agency page.",
+    "name": "Agency",
+    "members": "Agents",
+    "live": "Live homes",
+    "verified": "Verified",
+    "page": "Page",
+    "verify": "Verify",
+    "unverify": "Remove badge",
+    "demo": "Demo"
+  },
+  "info": {
+    "open": "What does this mean?",
+    "close": "Close"
+  },
+  "glossary": {
+    "valueEquation": {
+      "t": "Value equation (Alex Hormozi)",
+      "d": "People value an offer more when the result they want is big and they believe they'll get it, and less when it takes long or costs effort. Value = (Dream outcome × Perceived likelihood) ÷ (Time delay × Effort & sacrifice). To grow, raise the top and shrink the bottom."
+    },
+    "dream": {
+      "t": "Dream outcome",
+      "d": "The result the customer really wants, in their words. For renters: a flat they like with no surprises on bills, safety or noise. For brokers: serious tenants who sign quickly. Here we measure how much of that our listings can actually show."
+    },
+    "likelihood": {
+      "t": "Perceived likelihood of achievement",
+      "d": "How sure the customer feels that it will work for them. Proof raises it: fresh listings, real photos, verified publishers, area facts with a source, results others got. We measure the proof that's visible on the site."
+    },
+    "time": {
+      "t": "Time delay",
+      "d": "How long until the customer gets the result. Every wait lowers value. For renters: searches that find nothing. For brokers: hours until the first inquiry. Faster is better."
+    },
+    "effort": {
+      "t": "Effort & sacrifice",
+      "d": "What the customer has to do or give up along the way. For renters: having to rephrase searches. For brokers: listings left as drafts because publishing felt like work. Remove steps, do it for them."
+    },
+    "northStar": {
+      "t": "North star metric",
+      "d": "One number that captures the value delivered to both sides. For 2ajar: serious inquiries reaching owners and brokers each week (WhatsApp taps and contact requests). If it grows, renters found homes worth contacting and owners got demand."
+    },
+    "coreFour": {
+      "t": "The Core Four",
+      "d": "From $100M Leads: there are only four ways to get people to know about you: warm outreach (people who know you), cold outreach (strangers, one to one), posting content (one to many, free), and paid ads (one to many, paid). Then multiply with referrals, partners and others who bring leads for you."
+    },
+    "warm": {
+      "t": "Warm outreach",
+      "d": "Contacting people who already know you: friends, family, colleagues, building natours. The easiest first channel: personal messages, asking for help or a referral, not selling."
+    },
+    "cold": {
+      "t": "Cold outreach",
+      "d": "Contacting people who don't know you yet, one to one: brokers already advertising on Facebook, Instagram, OLX or building signs. Personal, about their listing, with follow-ups. Volume matters."
+    },
+    "content": {
+      "t": "Content",
+      "d": "Free posts that reach many people at once: reels, carousels, area guides. Give value first (what rent costs where, generator bills), so people come to you."
+    },
+    "paidAds": {
+      "t": "Paid ads",
+      "d": "Paying to show content to many people. Only after free content proves which message works; then measure cost per inquiry and stop what doesn't pay back."
+    },
+    "leads": {
+      "t": "Leads",
+      "d": "People who raised their hand: here, publishers who might list and renters who might contact. Lead actions grow the top of the funnel."
+    },
+    "rule100": {
+      "t": "Rule of 100",
+      "d": "Do 100 primary actions every day (messages, minutes of content, dollars of ads) until it works. At the start, volume beats cleverness."
+    },
+    "moreBetterNew": {
+      "t": "More → Better → New",
+      "d": "First do more of what already works, then make it better, and only then try something new. Most teams jump to 'new' too early."
+    },
+    "leadMagnet": {
+      "t": "Lead magnet",
+      "d": "Something genuinely useful you give for free (e.g. 'The real cost of renting in Beirut') so people raise their hand. It should lead naturally to your main offer."
+    },
+    "grandSlam": {
+      "t": "Grand Slam Offer",
+      "d": "An offer so good people feel stupid saying no: remove every obstacle to the dream outcome, add bonuses, a guarantee, scarcity, urgency and a clear name. For 2ajar: the Founding Partner offer to brokers."
+    },
+    "dontScale": {
+      "t": "Do things that don't scale",
+      "d": "At the start, hand-hold customers: upload their listings yourself, call them, send their report. You learn fast, and it earns the first loyal partners. Automate later."
+    },
+    "funnel": {
+      "t": "Funnel",
+      "d": "The steps from first contact to result: searches → visitors on listings → views → inquiries. The biggest drop between two steps is where to work."
+    },
+    "playbook": {
+      "t": "90-day playbook",
+      "d": "The growth plan as steps: days 1–30 get supply (do things that don't scale), 31–60 prove value and build demand, 61–90 multiply what works (referrals, ads, new areas)."
+    },
+    "canvas": {
+      "t": "Business Model Canvas",
+      "d": "A one-page map of a business in 9 blocks: who you serve, what value you give, through which channels, how you keep them, what you need (resources, activities, partners), what it costs and how money comes in."
     }
   }
 }

@@ -1,3 +1,4 @@
+import { BadgeCheck } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type { ListingPublic } from "@2ajar/contracts";
 import { formatUsd, locationName } from "@/lib/format";
@@ -20,6 +21,7 @@ export function ListingTile({
   const t = useTranslations("listing");
   const te = useTranslations("enums");
   const tDemo = useTranslations("demo");
+  const tPub = useTranslations("publisher");
   const locale = useLocale();
   const cover = listing.media[0];
   const p = listing.property;
@@ -47,11 +49,22 @@ export function ListingTile({
         ) : (
           <div className="flex size-full items-center justify-center text-sm text-muted-foreground">{t("noPhotos")}</div>
         )}
-        {listing.is_demo ? (
-          <span className="absolute start-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-amber-900 shadow-sm">
-            {tDemo("badge")}
-          </span>
-        ) : null}
+        <div className="absolute start-3 top-3 flex flex-wrap gap-1.5">
+          {listing.is_demo ? (
+            <span className="rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-amber-900 shadow-sm">
+              {tDemo("badge")}
+            </span>
+          ) : null}
+          {listing.publisher.verified ? (
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-primary shadow-sm"
+              data-testid="verified-badge"
+            >
+              <BadgeCheck className="size-3.5" aria-hidden />
+              {tPub("verified")}
+            </span>
+          ) : null}
+        </div>
         <div className="absolute end-2 top-2">
           <FavoriteButton listingId={listing.id} />
         </div>
