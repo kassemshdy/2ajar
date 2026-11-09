@@ -3,16 +3,18 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, status
 
 from app.api.deps import SessionDep, require_permission
-from app.api.providers import AreaServiceDep, TicketServiceDep, UserAdminDep
+from app.api.providers import AreaServiceDep, SettingsDep, TicketServiceDep, UserAdminDep
 from app.authz.policies import Principal
 from app.models.enums import Permission, TicketPriority, TicketStatus, UserRole
 from app.schemas.admin import AdminUserOut, AdminUserUpdate, PermissionInfo
 from app.schemas.common import Page
+from app.schemas.growth import GrowthOut, GrowthTaskIn
 from app.schemas.listing import AreaProfileIn, AreaProfileOut
 from app.schemas.tickets import TicketOut, TicketSummary, TicketUpdate
+from app.services.growth import GrowthService
 from app.services.presenters import ListingPresenter
 from app.services.stats import PlatformStats
 from app.services.tickets import TicketPresenter
@@ -81,6 +83,18 @@ async def update_ticket(
     ticket_id: uuid.UUID, data: TicketUpdate, request: Request, p: TicketsManage, tickets: TicketServiceDep
 ) -> TicketOut:
     return TicketPresenter(p).detail(await tickets.update(p, ticket_id, data, request))
+
+
+@router.get("/growth", response_model=GrowthOut)
+async def growth(_: AnalyticsRead, session: SessionDep, settings: SettingsDep) -> GrowthOut:
+    return GrowthOut.model_validate(await GrowthService(session, settings=settings).dashboard())
+
+
+@router.put("/growth/tasks/{key}", status_code=status.HTTP_204_NO_CONTENT)
+async def set_growth_task(
+    key: str, data: GrowthTaskIn, p: AnalyticsRead, session: SessionDep, settings: SettingsDep
+) -> None:
+    await GrowthService(session, settings=settings).set_task(p, key, data.done)
 
 
 @router.get("/stats")

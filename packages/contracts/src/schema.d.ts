@@ -34,6 +34,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/growth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Growth */
+        get: operations["growth_api_v1_admin_growth_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/growth/tasks/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set Growth Task */
+        put: operations["set_growth_task_api_v1_admin_growth_tasks__key__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/permissions": {
         parameters: {
             query?: never;
@@ -907,6 +941,23 @@ export interface components {
             /** Revoked At */
             revoked_at: string | null;
         };
+        /** AreaGapOut */
+        AreaGapOut: {
+            /** Has Area Facts */
+            has_area_facts: boolean;
+            /** Live Listings */
+            live_listings: number;
+            /** Name Ar */
+            name_ar: string;
+            /** Name En */
+            name_en: string;
+            /** Searches */
+            searches: number;
+            /** Slug */
+            slug: string;
+            /** Zero Results */
+            zero_results: number;
+        };
         /** AreaProfileIn */
         AreaProfileIn: {
             flood_risk?: components["schemas"]["FloodRisk"] | null;
@@ -1074,6 +1125,13 @@ export interface components {
             /** Via */
             via: string;
         };
+        /** CountOut */
+        CountOut: {
+            /** Key */
+            key: string;
+            /** Searches */
+            searches: number;
+        };
         /**
          * DiscoverOut
          * @description Each row is empty when there is nothing honest to show (e.g. no views yet), and the UI hides it.
@@ -1103,6 +1161,20 @@ export interface components {
          * @enum {string}
          */
         ElectricitySupply: "edl_only" | "edl_plus_generator" | "generator_24_7" | "solar" | "solar_battery";
+        /** FactorOut */
+        FactorOut: {
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "dream" | "likelihood" | "time" | "effort";
+            /** Metric */
+            metric: string;
+            /** Score */
+            score: number | null;
+            /** Value */
+            value: string;
+        };
         /** FavoriteIds */
         FavoriteIds: {
             /** Listing Ids */
@@ -1113,6 +1185,17 @@ export interface components {
          * @enum {string}
          */
         FloodRisk: "low" | "medium" | "high";
+        /** FunnelOut */
+        FunnelOut: {
+            /** Inquiries */
+            inquiries: number;
+            /** Searches */
+            searches: number;
+            /** Views */
+            views: number;
+            /** Visitors */
+            visitors: number;
+        };
         /**
          * Furnished
          * @enum {string}
@@ -1123,6 +1206,41 @@ export interface components {
          * @enum {string}
          */
         GarbageCollection: "daily" | "several_weekly" | "weekly" | "irregular";
+        /** GrowthOut */
+        GrowthOut: {
+            /** Area Gaps */
+            area_gaps: components["schemas"]["AreaGapOut"][];
+            /** Demo Mode */
+            demo_mode: boolean;
+            funnel: components["schemas"]["FunnelOut"];
+            /** Generated At */
+            generated_at: string;
+            /** Metrics */
+            metrics: {
+                [key: string]: number | null;
+            };
+            owners: components["schemas"]["ValueEquationOut"];
+            /** Playbook */
+            playbook: components["schemas"]["PlaybookItemOut"][];
+            /** Property Types */
+            property_types: components["schemas"]["CountOut"][];
+            /** Quiet Listings */
+            quiet_listings: components["schemas"]["QuietListingOut"][];
+            /** Recommendations */
+            recommendations: components["schemas"]["RecommendationOut"][];
+            renters: components["schemas"]["ValueEquationOut"];
+            /** Targets */
+            targets: {
+                [key: string]: components["schemas"]["TargetOut"];
+            };
+            /** Wishes */
+            wishes: components["schemas"]["WishOut"][];
+        };
+        /** GrowthTaskIn */
+        GrowthTaskIn: {
+            /** Done */
+            done: boolean;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1612,6 +1730,25 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** PlaybookItemOut */
+        PlaybookItemOut: {
+            /** Auto */
+            auto: boolean;
+            /** Current */
+            current: number | null;
+            /** Done */
+            done: boolean;
+            /** Key */
+            key: string;
+            /** Metric */
+            metric: string | null;
+            /** Phase */
+            phase: number;
+            /** Progress */
+            progress: number | null;
+            /** Target */
+            target: number | null;
+        };
         /**
          * PricePeriod
          * @description 2ajar is rentals of any length: from an hour (day-use chalet, pool, hall) to years.
@@ -1659,6 +1796,15 @@ export interface components {
              */
             type: "broker" | "owner";
         };
+        /** QuietListingOut */
+        QuietListingOut: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Visitors */
+            visitors: number;
+        };
         /** RankedArea */
         RankedArea: {
             area: components["schemas"]["AreaProfileOut"];
@@ -1683,6 +1829,24 @@ export interface components {
              * @enum {string}
              */
             status: "match" | "miss" | "unknown";
+        };
+        /** RecommendationOut */
+        RecommendationOut: {
+            /** Channel */
+            channel: string | null;
+            /** Key */
+            key: string;
+            /**
+             * Lever
+             * @enum {string}
+             */
+            lever: "dream" | "likelihood" | "time" | "effort" | "leads";
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** Priority */
+            priority: number;
         };
         /** RegisterIn */
         RegisterIn: {
@@ -1748,6 +1912,13 @@ export interface components {
          * @enum {string}
          */
         SummerComfort: "cool" | "moderate" | "hot";
+        /** TargetOut */
+        TargetOut: {
+            /** Day30 */
+            day30: number;
+            /** Day90 */
+            day90: number;
+        };
         /**
          * TicketCategory
          * @enum {string}
@@ -1948,6 +2119,13 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** ValueEquationOut */
+        ValueEquationOut: {
+            /** Factors */
+            factors: components["schemas"]["FactorOut"][];
+            /** Index */
+            index: number | null;
+        };
         /** ValueListing */
         ValueListing: {
             /** Below Area Median Pct */
@@ -1975,6 +2153,15 @@ export interface components {
          * @enum {string}
          */
         WinterComfort: "warm" | "moderate" | "cold";
+        /** WishOut */
+        WishOut: {
+            /** Data Coverage */
+            data_coverage: number | null;
+            /** Key */
+            key: string;
+            /** Searches */
+            searches: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -2027,6 +2214,59 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AreaProfileOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    growth_api_v1_admin_growth_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GrowthOut"];
+                };
+            };
+        };
+    };
+    set_growth_task_api_v1_admin_growth_tasks__key__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GrowthTaskIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

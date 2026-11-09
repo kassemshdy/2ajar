@@ -129,6 +129,12 @@ value, top-rated neighbourhoods); favorites (heart, Saved page); listing page ph
 similar homes nearby; EN/AR; tests ≥ gates; e2e.
 Follow-ups: availability calendar / booking requests for short stays; guest reviews once stays exist.
 
+### B-037 ✅ Growth dashboard (admin)
+AC: north star + scoreboard vs plan targets; Hormozi value equation for renters and owners computed from data;
+funnel; supply gaps from logged searches; wishes vs data coverage; quiet listings; rule-based next steps with
+lever/channel/evidence; 90-day playbook checklist (persisted, measured steps auto-tick); Business Model Canvas,
+revenue streams and revenue calculator; EN/AR; tests ≥ gates; e2e.
+
 ## M2 — Seeker polish
 - B-031a ✅ Favorites (done in B-036).
 - B-031 ⬜ Email verification & password reset (no paid provider until approved; SMTP via env).

@@ -89,3 +89,14 @@ class Favorite(Base):
         ForeignKey("listings.id", ondelete="CASCADE"), primary_key=True, index=True
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class GrowthTask(Base):
+    """A ticked step of the growth playbook (admin → Growth). Only done steps are stored; keys are in code."""
+
+    __tablename__ = "growth_tasks"
+
+    key: Mapped[str] = mapped_column(String(60), primary_key=True)
+    done: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
+    updated_by_user_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

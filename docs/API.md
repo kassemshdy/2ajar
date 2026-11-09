@@ -147,6 +147,8 @@ elevator backup, winter/summer comfort, highlights, things to know) and, on deta
 | GET | `/admin/tickets?status=&priority=&q=&assignee_id=` | `tickets.read` |
 | PATCH | `/admin/tickets/{id}` `{status?, priority?, category?, assignee_user_id?}` | `tickets.manage` |
 | GET | `/admin/stats` | `analytics.read` |
+| GET | `/admin/growth` → scoreboard metrics and targets, Hormozi value equation per side (factors + index), funnel, supply gaps, wishes vs data coverage, quiet listings, data-driven recommendations, 90-day playbook | `analytics.read` |
+| PUT | `/admin/growth/tasks/{key}` `{done}` (tick a playbook step) | `analytics.read` |
 | GET | `/admin/areas` | `areas.manage` |
 | PUT | `/admin/areas/{location_id}` `{safety_score?, quiet_score?, theft_reports_12m?, noise_notes_en/ar?, garbage_collection?, flood_risk?, summary_en/ar?, source_note?}` (replaces; audit logged) | `areas.manage` |
 

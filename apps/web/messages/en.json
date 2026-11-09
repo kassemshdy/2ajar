@@ -335,7 +335,8 @@
     "role_staff": "Staff",
     "role_platform_admin": "Platform admin",
     "edit": "Edit",
-    "areas": "Areas"
+    "areas": "Areas",
+    "growth": "Growth"
   },
   "tokens": {
     "title": "API tokens",
@@ -535,5 +536,373 @@
     "empty": "Tap the heart on any home to save it here.",
     "explore": "Explore homes",
     "loginToSave": "Log in to save homes"
+  },
+  "growth": {
+    "title": "Growth",
+    "tabs": {
+      "dashboard": "Dashboard",
+      "steps": "Next steps",
+      "playbook": "90-day playbook",
+      "business": "Business model"
+    },
+    "updated": "Measured {date}",
+    "demoNote": "Demo mode is on: numbers include demo listings, so treat them as a rehearsal.",
+    "noData": "not enough data yet",
+    "northStar": "North star: serious inquiries this week",
+    "northStarHint": "WhatsApp taps + contact requests, last 7 days",
+    "target30": "Day-30 target {n}",
+    "target90": "Day-90 target {n}",
+    "scoreboard": "Scoreboard (actual vs plan)",
+    "metric": {
+      "live_listings": "Live listings",
+      "active_publishers": "Active owners & brokers",
+      "weekly_searches": "Smart searches / week",
+      "conversion": "Views → inquiry",
+      "weekly_inquiries": "Inquiries / week",
+      "retention_60d": "Publishers still active after 60 days"
+    },
+    "valueEq": "Hormozi value equation, measured",
+    "valueEqFormula": "Value = (Dream outcome × Likelihood) ÷ (Time delay × Effort)",
+    "valueEqHint": "Each factor is a real measurement. 100 is the ceiling; the weakest factor is where to work next.",
+    "renters": "Renters",
+    "owners": "Owners & brokers",
+    "index": "Value index",
+    "factor": {
+      "dream": "Dream outcome",
+      "likelihood": "Perceived likelihood",
+      "time": "Time delay",
+      "effort": "Effort & sacrifice"
+    },
+    "factorMetric": {
+      "bills_reported": "listings that report electricity + water costs",
+      "fresh_photos_areafacts": "fresh, ≥3 photos, area facts (average)",
+      "zero_result_searches": "searches with no results (30 days)",
+      "needed_clarification": "searches we had to ask to clarify",
+      "inquiries_per_listing_week": "inquiries per live listing per week (goal: 1)",
+      "listings_contacted_30d": "live listings contacted in 30 days",
+      "hours_to_first_inquiry": "median time from publishing to first inquiry",
+      "drafts_never_published": "listings stuck as drafts"
+    },
+    "funnel": "Funnel, last 7 days",
+    "funnelStep": {
+      "searches": "Smart searches",
+      "visitors": "Visitors on listings",
+      "views": "Listing views",
+      "inquiries": "Inquiries"
+    },
+    "gaps": "Supply gaps: what people search for vs what we have",
+    "gapsHint": "Areas searched in the last 30 days. Call brokers here first.",
+    "gapCols": {
+      "area": "Area",
+      "searches": "Searches",
+      "zero": "No results",
+      "live": "Live homes",
+      "facts": "Area facts"
+    },
+    "wishes": "Top wishes vs our data",
+    "wishesHint": "How often renters ask for it, and how many live listings can answer it.",
+    "coverage": "{pct} of listings can answer",
+    "amenityWish": "answered by amenities",
+    "types": "Most searched types",
+    "quiet": "Viewed a lot, no inquiry (30 days): call these owners",
+    "visitors": "{n} visitors",
+    "stepsHint": "Generated from the numbers above. Priority 1 = this week.",
+    "priority": "P{n}",
+    "lever": {
+      "dream": "Dream outcome",
+      "likelihood": "Likelihood",
+      "time": "Time delay",
+      "effort": "Effort",
+      "leads": "Leads"
+    },
+    "channel": {
+      "warm_cold_outreach": "Warm + cold outreach",
+      "cold_outreach": "Cold outreach",
+      "warm_outreach": "Warm outreach",
+      "content": "Content",
+      "paid_ads": "Paid ads"
+    },
+    "rec": {
+      "supply_sprint": {
+        "t": "Supply sprint: {missing} more listings to reach 300",
+        "d": "Only {live} live listings. 100 personal messages a day to brokers and owners (warm + cold), starting with: {areas}. Offer the Founding Partner deal: free, live within 48 hours."
+      },
+      "go_live": {
+        "t": "Go live with real listings",
+        "d": "{demo_share} of live listings are demo. Once real listings cover the main areas, switch off demo mode (docs/DEPLOYMENT.md) so every number here is real."
+      },
+      "fill_zero_results": {
+        "t": "{rate} of searches find nothing",
+        "d": "Each empty search is a renter we lost. Recruit listings in: {areas}."
+      },
+      "ask_bills": {
+        "t": "Ask publishers for bills: only {share} report them",
+        "d": "Real monthly cost (generator + water) is the dream outcome renters want. Message publishers to fill electricity and water in their listings."
+      },
+      "enter_area_facts": {
+        "t": "Enter area facts ({share} of listings covered)",
+        "d": "Safety, thefts, quiet and garbage raise trust. Start with the most-searched areas without facts: {areas}."
+      },
+      "confirm_reminders": {
+        "t": "Only {share} of listings are fresh",
+        "d": "Ask publishers to confirm availability (dashboard button). Stale listings kill trust."
+      },
+      "more_photos": {
+        "t": "Only {share} of listings have 3+ photos",
+        "d": "Photos raise perceived likelihood. Offer free professional photos to Founding Partners' best flats."
+      },
+      "answer_top_wishes": {
+        "t": "Renters ask for things our listings don't say",
+        "d": "Top unanswered wishes: {wishes}. Ask publishers to fill those fields."
+      },
+      "call_quiet_listings": {
+        "t": "{count} popular listings get no inquiries",
+        "d": "Many visitors, no contact: likely price, photos or missing info. Call the owners (list on the dashboard tab)."
+      },
+      "improve_conversion": {
+        "t": "Only {rate} of views become inquiries",
+        "d": "Improve the top listings: price vs area median, photos, bills and area facts filled."
+      },
+      "start_content": {
+        "t": "Only {searches} smart searches this week",
+        "d": "Start daily Arabic content (reels: 'what $700 rents in Hamra', generator bills, area cards) pointing to a specific search."
+      },
+      "better_prompts": {
+        "t": "{rate} of searches need clarification",
+        "d": "People type vague queries. Add more example prompts and categories on the home page."
+      },
+      "feature_new_listings": {
+        "t": "New listings wait {hours} h for a first inquiry",
+        "d": "Feature new listings in the home rows for their first week."
+      },
+      "start_paid_ads": {
+        "t": "Ready for paid ads ({inquiries} inquiries/week)",
+        "d": "Organic works. Test a small Meta budget with the 2 best reels, measuring cost per inquiry."
+      },
+      "win_back_publishers": {
+        "t": "Only {rate} of publishers are still active after 60 days",
+        "d": "Call inactive publishers, send them their stats, and ask what's missing."
+      }
+    },
+    "noSteps": "Nothing urgent: keep doing more of what works.",
+    "playbookHint": "From the growth plan. Measured steps tick themselves; tick the others when done.",
+    "phase": {
+      "1": "Days 1–30 · supply sprint",
+      "2": "Days 31–60 · demand & proof",
+      "3": "Days 61–90 · multiply"
+    },
+    "step": {
+      "offer_defined": "Write the Founding Partner offer (guarantee, deadline)",
+      "warm_list_100": "Warm list of 100 names (owners, brokers, natours)",
+      "daily_outreach": "Daily outreach: 20 warm + 50 cold messages",
+      "area_facts_top10": "Area facts for the 10 most-searched areas",
+      "first_10_partners": "First 10 partners onboarded by hand",
+      "listings_100": "100 live listings",
+      "demo_off": "Demo mode off",
+      "daily_content": "One Arabic reel a day",
+      "listings_150": "150 live listings",
+      "partners_15": "15 active partners",
+      "lead_magnet": "Publish the 'real cost of renting' guide",
+      "affiliates": "3 universities + 5 NGOs/companies as partners",
+      "monthly_report": "Send partners their first monthly report",
+      "case_studies": "3 real case studies (with permission)",
+      "double_best_channel": "Double the best-performing channel",
+      "weekly_inquiries_50": "50 inquiries a week",
+      "referrals": "Referral program live",
+      "paid_ads": "Paid ads test with the best reels",
+      "expand_keserwan_baabda": "Expand to Keserwan and Baabda",
+      "monetisation_test": "Monetisation test with 5 partners",
+      "listings_600": "600 live listings",
+      "weekly_inquiries_400": "400 inquiries a week"
+    },
+    "auto": "measured",
+    "of": "{current} / {target}",
+    "bm": {
+      "canvas": "Business Model Canvas",
+      "canvasHint": "How 2ajar creates, delivers and captures value.",
+      "blocks": {
+        "partners": {
+          "t": "Key partners",
+          "i": [
+            "Brokers and agencies (supply)",
+            "Owners and building managers (natours)",
+            "Universities, NGOs, relocating companies (demand)",
+            "Service providers: movers, solar, generators, internet",
+            "Railway / Cloudflare (hosting)"
+          ]
+        },
+        "activities": {
+          "t": "Key activities",
+          "i": [
+            "Recruit and onboard listings (do it for them)",
+            "Curate area facts (safety, noise, garbage, floods)",
+            "Keep listings fresh and honest",
+            "Arabic content and community",
+            "Improve search from logged queries"
+          ]
+        },
+        "resources": {
+          "t": "Key resources",
+          "i": [
+            "Plain-language Arabic/English/Arabizi search",
+            "Living-cost and area data",
+            "Listing inventory and broker network",
+            "Brand trust ('we never guess')"
+          ]
+        },
+        "value": {
+          "t": "Value propositions",
+          "i": [
+            "Renters: find a flat by saying what you need, with real bills and area facts",
+            "No surprises: generator, water, safety known before visiting",
+            "Brokers: serious, pre-informed inquiries; free setup in 48 h",
+            "Rent anything from an hour to years"
+          ]
+        },
+        "relationships": {
+          "t": "Customer relationships",
+          "i": [
+            "Founding Partners: personal onboarding and monthly reports",
+            "Self-service for renters",
+            "WhatsApp-first support, bug button"
+          ]
+        },
+        "channels": {
+          "t": "Channels",
+          "i": [
+            "Website (Arabic first), mobile web",
+            "WhatsApp handoff and alerts",
+            "Instagram / TikTok reels, SEO area pages",
+            "Warm and cold outreach to brokers",
+            "Affiliates: universities, NGOs"
+          ]
+        },
+        "segments": {
+          "t": "Customer segments",
+          "i": [
+            "Renters in Beirut & Mount Lebanon (locals, students, expats)",
+            "Independent owners",
+            "Brokers and agencies",
+            "Short-stay hosts (chalets, day use), later"
+          ]
+        },
+        "costs": {
+          "t": "Cost structure",
+          "i": [
+            "Hosting and storage (low, usage-based)",
+            "Outreach and onboarding time",
+            "Content production, photos",
+            "Paid ads (after day 45)",
+            "Support and moderation"
+          ]
+        },
+        "revenue": {
+          "t": "Revenue streams",
+          "i": [
+            "Featured listings / boosts",
+            "Broker & agency subscriptions",
+            "Partner referral fees (movers, solar, internet)",
+            "Verification and photo services",
+            "Later: short-stay commission, rent index reports"
+          ]
+        }
+      },
+      "money": "How 2ajar can make money (suggested order)",
+      "moneyHint": "Free during the founding period. Start charging only after brokers see value in their stats. Pricing is the owner's decision (Q1); numbers below are starting assumptions for the Lebanese market.",
+      "streams": [
+        {
+          "t": "1. Featured listings (boosts)",
+          "d": "Pay to appear first in the area's home row and in search for 7 days. Simple, one-off, works for owners and brokers.",
+          "p": "e.g. $5 per listing per week",
+          "when": "From ~day 60, once there's traffic"
+        },
+        {
+          "t": "2. Pro subscription for brokers",
+          "d": "Free: up to 5 live listings. Pro: unlimited listings, stats and monthly report, verified badge, CSV import, 2 boosts/month.",
+          "p": "e.g. $15 / month",
+          "when": "After broker stats exist (#4)"
+        },
+        {
+          "t": "3. Agency plan",
+          "d": "Several agents under one agency, shared dashboard and leads, agency page.",
+          "p": "e.g. $49 / month",
+          "when": "With 5+ agencies active"
+        },
+        {
+          "t": "4. Partner referral fees",
+          "d": "Renters who just found a flat need movers, internet, solar or a generator subscription. Recommend vetted partners, earn a referral fee. Fits 2ajar's living-cost data.",
+          "p": "e.g. 5–10% or a fixed fee per job",
+          "when": "Once ~100 rentals close per month"
+        },
+        {
+          "t": "5. Verification and photos",
+          "d": "Paid owner verification visit and professional photo shoot.",
+          "p": "e.g. $30–50 one-off",
+          "when": "Anytime; also a Founding Partner bonus"
+        },
+        {
+          "t": "6. Later: short-stay commission",
+          "d": "A % on chalet and day-use bookings once online booking exists (no calendar for now).",
+          "p": "e.g. 8–12%",
+          "when": "Not now"
+        },
+        {
+          "t": "7. Later: rent index reports",
+          "d": "Anonymous, aggregated rent and living-cost reports for banks, NGOs and developers. Never personal data.",
+          "p": "per report",
+          "when": "With enough volume"
+        }
+      ],
+      "avoid": "Avoid early: charging renters, pay-per-lead (hard to verify, invites disputes), banner ads (hurt trust).",
+      "payments": "Payments in Lebanon (Q7): start with invoices paid by Whish Money, OMT, bank transfer or cash in USD; add card payments later.",
+      "sim": "Revenue calculator",
+      "simHint": "Starts from today's real numbers; change the assumptions to see monthly revenue.",
+      "simInputs": {
+        "proPrice": "Pro price ($/month)",
+        "proAdoption": "% of active publishers on Pro",
+        "boostPrice": "Boost price ($/week)",
+        "boostShare": "% of live listings boosted",
+        "referralFee": "Referral fee per closed rental ($)",
+        "closeRate": "% of inquiries that close"
+      },
+      "simCols": {
+        "stream": "Stream",
+        "today": "With today's numbers",
+        "day90": "At day-90 targets"
+      },
+      "simRows": {
+        "pro": "Pro subscriptions",
+        "boost": "Featured boosts",
+        "referral": "Partner referrals",
+        "total": "Total / month"
+      },
+      "simNote": "Assumptions, not forecasts. Today's base: {publishers} active publishers, {listings} live listings, {inquiries} inquiries/week."
+    },
+    "wish": {
+      "electricity_24_7": "24/7 electricity",
+      "low_electricity_bill": "Low electricity bill",
+      "solar": "Solar",
+      "water": "Reliable water",
+      "sewage": "Public sewage",
+      "elevator": "Elevator",
+      "elevator_backup": "Elevator in power cuts",
+      "parking": "Parking",
+      "warm_winter": "Warm in winter",
+      "cool_summer": "Cool in summer",
+      "quiet": "Quiet area",
+      "safe": "Safe area",
+      "low_theft": "Few thefts",
+      "clean": "Clean area",
+      "no_flooding": "No flooding",
+      "sea_view": "Sea view",
+      "mountain_view": "Mountain view",
+      "balcony": "Balcony",
+      "terrace": "Terrace",
+      "garden": "Garden",
+      "pool": "Pool",
+      "gym": "Gym",
+      "security": "Security",
+      "pets": "Pets allowed"
+    }
   }
 }

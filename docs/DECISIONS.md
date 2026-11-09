@@ -122,6 +122,15 @@ IBM Plex Sans Arabic) via next/font. The logo and the teal accent stay 2ajar's o
 2ajar is mainly monthly apartment rentals, so apartments lead (categories, area rows); chalets and hourly come after.
 No availability calendar for now (owner decision).
 
+## ADR-026 Growth dashboard measures, never estimates
+Admin → Growth applies Alex Hormozi's value equation (dream × likelihood ÷ time × effort) and the growth plan to
+2ajar's own data: listings, visits (distinct daily visitor hashes), WhatsApp taps, consented leads and logged
+smart searches. Each factor maps to a stated, measurable proxy; when data is missing the API returns null and
+the UI says "not enough data yet". Recommendations are explicit rules over those numbers (thresholds in
+`app/services/growth.py`), so every suggestion can be traced to its evidence. Playbook ticks are stored; measured
+steps tick themselves. The business-model section (canvas, revenue streams, calculator) is guidance: pricing
+stays an owner decision (Q1, Q7) and calculator outputs are labelled as assumptions.
+
 ---
 
 ## Assumptions

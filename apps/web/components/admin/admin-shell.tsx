@@ -20,6 +20,7 @@ export function AdminShell({ need, children }: { need: Permission; children: Rea
     { href: "/admin/tickets", label: t("tickets"), show: can("tickets.read") },
     { href: "/admin/users", label: t("users"), show: can("users.read") },
     { href: "/admin/areas", label: t("areas"), show: can("areas.manage") },
+    { href: "/admin/growth", label: t("growth"), show: can("analytics.read") },
     { href: "/settings/tokens", label: tNav("tokens"), show: can("mcp.access") },
   ].filter((x) => x.show);
 

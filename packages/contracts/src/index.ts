@@ -53,3 +53,4 @@ export type AreaProfileInput = S["AreaProfileIn"];
 export type DiscoverOut = S["DiscoverOut"];
 export type NearbyListing = S["NearbyListing"];
 export type Stay = S["Stay"];
+export type GrowthDashboard = S["GrowthOut"];
