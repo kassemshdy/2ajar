@@ -1,6 +1,71 @@
 {
   "components": {
     "schemas": {
+      "AdminAgencyOut": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_demo": {
+            "title": "Is Demo",
+            "type": "boolean"
+          },
+          "is_verified": {
+            "title": "Is Verified",
+            "type": "boolean"
+          },
+          "live_listings": {
+            "title": "Live Listings",
+            "type": "integer"
+          },
+          "members": {
+            "title": "Members",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "is_verified",
+          "is_demo",
+          "members",
+          "live_listings",
+          "created_at"
+        ],
+        "title": "AdminAgencyOut",
+        "type": "object"
+      },
+      "AdminAgencyUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "is_verified": {
+            "title": "Is Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "is_verified"
+        ],
+        "title": "AdminAgencyUpdate",
+        "type": "object"
+      },
       "AdminMembershipOut": {
         "additionalProperties": false,
         "properties": {
@@ -59,6 +124,11 @@
           },
           "is_demo": {
             "title": "Is Demo",
+            "type": "boolean"
+          },
+          "is_verified": {
+            "default": false,
+            "title": "Is Verified",
             "type": "boolean"
           },
           "last_login_at": {
@@ -161,6 +231,17 @@
             ],
             "title": "Is Active"
           },
+          "is_verified": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Verified"
+          },
           "role": {
             "anyOf": [
               {
@@ -173,6 +254,54 @@
           }
         },
         "title": "AdminUserUpdate",
+        "type": "object"
+      },
+      "AgencyPage": {
+        "additionalProperties": false,
+        "properties": {
+          "is_demo": {
+            "title": "Is Demo",
+            "type": "boolean"
+          },
+          "listings": {
+            "items": {
+              "$ref": "#/components/schemas/ListingPublic"
+            },
+            "title": "Listings",
+            "type": "array"
+          },
+          "members": {
+            "title": "Members",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "on_2ajar_since": {
+            "format": "date-time",
+            "title": "On 2Ajar Since",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "slug",
+          "verified",
+          "is_demo",
+          "members",
+          "on_2ajar_since",
+          "listings"
+        ],
+        "title": "AgencyPage",
         "type": "object"
       },
       "Amenity": {
@@ -2086,6 +2215,16 @@
           "publisher": {
             "$ref": "#/components/schemas/PublisherOut"
           },
+          "stats": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ListingStats"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "status": {
             "$ref": "#/components/schemas/ListingStatus"
           },
@@ -2224,6 +2363,34 @@
           "is_demo"
         ],
         "title": "ListingPublic",
+        "type": "object"
+      },
+      "ListingStats": {
+        "additionalProperties": false,
+        "description": "What happened to a listing in the last 30 days (shown to whoever manages it).",
+        "properties": {
+          "leads_30d": {
+            "default": 0,
+            "title": "Leads 30D",
+            "type": "integer"
+          },
+          "saves": {
+            "default": 0,
+            "title": "Saves",
+            "type": "integer"
+          },
+          "visitors_30d": {
+            "default": 0,
+            "title": "Visitors 30D",
+            "type": "integer"
+          },
+          "whatsapp_30d": {
+            "default": 0,
+            "title": "Whatsapp 30D",
+            "type": "integer"
+          }
+        },
+        "title": "ListingStats",
         "type": "object"
       },
       "ListingStatus": {
@@ -3340,6 +3507,17 @@
       "PublisherOut": {
         "additionalProperties": false,
         "properties": {
+          "agency_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agency Slug"
+          },
           "display_name": {
             "title": "Display Name",
             "type": "string"
@@ -3362,6 +3540,11 @@
             ],
             "title": "Type",
             "type": "string"
+          },
+          "verified": {
+            "default": false,
+            "title": "Verified",
+            "type": "boolean"
           }
         },
         "required": [
@@ -4448,6 +4631,84 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/admin/agencies": {
+      "get": {
+        "operationId": "list_agencies_api_v1_admin_agencies_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminAgencyOut"
+                  },
+                  "title": "Response List Agencies Api V1 Admin Agencies Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Agencies",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/agencies/{agency_id}": {
+      "patch": {
+        "operationId": "update_agency_api_v1_admin_agencies__agency_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "agency_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Agency Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminAgencyUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminAgencyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Agency",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/v1/admin/areas": {
       "get": {
         "operationId": "list_areas_api_v1_admin_areas_get",
@@ -5013,6 +5274,48 @@
         "summary": "Update User",
         "tags": [
           "admin"
+        ]
+      }
+    },
+    "/api/v1/agencies/{slug}": {
+      "get": {
+        "operationId": "agency_page_api_v1_agencies__slug__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "title": "Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgencyPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Agency Page",
+        "tags": [
+          "agencies"
         ]
       }
     },

@@ -35,6 +35,7 @@ def present_user(user: User) -> AdminUserOut:
         role=user.role,
         is_active=user.is_active,
         is_demo=user.is_demo,
+        is_verified=user.is_verified,
         extra_permissions=extra,
         permissions=sorted(effective_permissions(user.role, extra)),
         memberships=[
@@ -101,6 +102,7 @@ class UserAdminService:
         before: dict[str, Any] = {
             "role": user.role.value,
             "is_active": user.is_active,
+            "is_verified": user.is_verified,
             "extra_permissions": list(user.extra_permissions or []),
             "full_name": user.full_name,
         }
@@ -129,6 +131,8 @@ class UserAdminService:
 
         if changes.get("full_name"):
             user.full_name = changes["full_name"]
+        if changes.get("is_verified") is not None:
+            user.is_verified = changes["is_verified"]
         user.role = new_role
         deactivated = user.is_active and not new_active
         user.is_active = new_active
@@ -138,6 +142,7 @@ class UserAdminService:
         after = {
             "role": user.role.value,
             "is_active": user.is_active,
+            "is_verified": user.is_verified,
             "extra_permissions": list(user.extra_permissions or []),
             "full_name": user.full_name,
         }

@@ -6,10 +6,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, Request, status
 
 from app.api.deps import SessionDep, require_permission
-from app.api.providers import AreaServiceDep, SettingsDep, TicketServiceDep, UserAdminDep
+from app.api.providers import AgencyServiceDep, AreaServiceDep, SettingsDep, TicketServiceDep, UserAdminDep
 from app.authz.policies import Principal
 from app.models.enums import Permission, TicketPriority, TicketStatus, UserRole
-from app.schemas.admin import AdminUserOut, AdminUserUpdate, PermissionInfo
+from app.schemas.admin import AdminAgencyOut, AdminAgencyUpdate, AdminUserOut, AdminUserUpdate, PermissionInfo
 from app.schemas.common import Page
 from app.schemas.growth import GrowthOut, GrowthTaskIn
 from app.schemas.listing import AreaProfileIn, AreaProfileOut
@@ -100,6 +100,25 @@ async def set_growth_task(
 @router.get("/stats")
 async def stats(_: AnalyticsRead, session: SessionDep) -> dict[str, object]:
     return await PlatformStats(session).snapshot()
+
+
+ListingsModerate = Annotated[Principal, Depends(require_permission(Permission.listings_moderate))]
+
+
+@router.get("/agencies", response_model=list[AdminAgencyOut])
+async def list_agencies(_: ListingsModerate, agencies: AgencyServiceDep) -> list[AdminAgencyOut]:
+    return await agencies.admin_list()
+
+
+@router.patch("/agencies/{agency_id}", response_model=AdminAgencyOut)
+async def update_agency(
+    agency_id: uuid.UUID,
+    data: AdminAgencyUpdate,
+    request: Request,
+    p: ListingsModerate,
+    agencies: AgencyServiceDep,
+) -> AdminAgencyOut:
+    return await agencies.set_verified(p, agency_id, data.is_verified, request)
 
 
 AreasManage = Annotated[Principal, Depends(require_permission(Permission.areas_manage))]

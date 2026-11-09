@@ -12,9 +12,42 @@ import { Alert, Badge, Card } from "./ui/card";
 
 const STATUS_TONE = { published: "success", draft: "muted", paused: "warning" } as const;
 
+const STAT_KEYS = [
+  ["visitors_30d", "totalVisitors"],
+  ["whatsapp_30d", "totalWhatsapp"],
+  ["leads_30d", "totalLeads"],
+  ["saves", "totalSaves"],
+] as const;
+
+/** The monthly report: what renters did with all of this publisher's listings over the last 30 days. */
+function MonthlyReport({ listings }: { listings: ListingPrivate[] }) {
+  const t = useTranslations("stats");
+  const totals = STAT_KEYS.map(([key, label]) => ({
+    label,
+    value: listings.reduce((sum, l) => sum + (l.stats?.[key] ?? 0), 0),
+  }));
+  return (
+    <section className="flex flex-col gap-3" data-testid="monthly-report">
+      <div>
+        <h2 className="text-lg font-semibold">{t("title")}</h2>
+        <p className="text-sm text-muted-foreground">{t("hint")}</p>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {totals.map((x) => (
+          <Card key={x.label} className="flex flex-col gap-1 p-4">
+            <p className="text-sm text-muted-foreground">{t(x.label)}</p>
+            <p className="text-2xl font-semibold">{x.value}</p>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function Dashboard() {
   const t = useTranslations("dashboard");
   const tImport = useTranslations("import");
+  const tStats = useTranslations("stats");
   const locale = useLocale();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -90,6 +123,8 @@ export function Dashboard() {
       </div>
       {error ? <Alert tone="error">{error}</Alert> : null}
 
+      {listings.length ? <MonthlyReport listings={listings} /> : null}
+
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">{t("myListings")}</h2>
         {listings.length === 0 ? <p className="text-muted-foreground">{t("noListings")}</p> : null}
@@ -113,6 +148,16 @@ export function Dashboard() {
                       </span>
                     </div>
                     <p className="truncate font-medium">{listingTitle(l, locale) || "—"}</p>
+                    {l.stats ? (
+                      <p className="text-xs text-muted-foreground" data-testid="listing-stats">
+                        {[
+                          tStats("visitors", { count: l.stats.visitors_30d }),
+                          tStats("whatsapp", { count: l.stats.whatsapp_30d }),
+                          tStats("leads", { count: l.stats.leads_30d }),
+                          tStats("saves", { count: l.stats.saves }),
+                        ].join(" · ")}
+                      </p>
+                    ) : null}
                     <p className="text-sm text-muted-foreground">
                       {formatUsd(l.price_usd, locale)}
                       {l.status === "published" && l.expires_at

@@ -1,4 +1,4 @@
-import { BedDouble, Bath, Building, CheckCircle2, Layers, MapPin, Ruler, Sofa, Users } from "lucide-react";
+import { BadgeCheck, BedDouble, Bath, Building, CheckCircle2, Layers, MapPin, Ruler, Sofa, Users } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -127,7 +127,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               {te(p.property_type)} · {locationName(listing.location, locale)}
             </h2>
             <p className="text-muted-foreground">{facts.map((f) => f.text).join(" · ")}</p>
-            <p className="mt-2 text-sm">{t("hostedBy", { name: listing.publisher.display_name })}</p>
+            <Publisher publisher={listing.publisher} locale={locale} />
             {listing.last_confirmed_at ? (
               <p className="flex items-center gap-1 text-sm text-emerald-700">
                 <CheckCircle2 className="size-4" aria-hidden />
@@ -207,5 +207,37 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         </div>
       ) : null}
     </article>
+  );
+}
+
+/** "Listed by Cedar Homes · Broker · ✓ Verified", linking to the agency page when there is one. */
+async function Publisher({ publisher, locale }: { publisher: ListingPublic["publisher"]; locale: string }) {
+  const t = await getTranslations("publisher");
+  const name = publisher.organization_name ?? publisher.display_name;
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2 text-sm" data-testid="publisher">
+      <span className="flex size-9 items-center justify-center rounded-full bg-foreground text-sm font-semibold text-background">
+        {name.trim().charAt(0).toUpperCase()}
+      </span>
+      <span className="flex flex-col">
+        <span>
+          {t("listedBy")}{" "}
+          {publisher.agency_slug ? (
+            <a href={`/${locale}/agencies/${publisher.agency_slug}`} className="font-semibold underline">
+              {name}
+            </a>
+          ) : (
+            <span className="font-semibold">{name}</span>
+          )}
+        </span>
+        <span className="text-muted-foreground">{t(publisher.type)}</span>
+      </span>
+      {publisher.verified ? (
+        <Badge tone="success" className="gap-1" title={t("verifiedHint")} data-testid="publisher-verified">
+          <BadgeCheck className="size-3.5" aria-hidden />
+          {t("verified")}
+        </Badge>
+      ) : null}
+    </div>
   );
 }

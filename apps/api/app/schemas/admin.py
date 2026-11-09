@@ -21,6 +21,7 @@ class AdminUserOut(APIModel):
     role: UserRole
     is_active: bool
     is_demo: bool
+    is_verified: bool = False
     extra_permissions: list[Permission]
     permissions: list[Permission]  # effective = role defaults + extra grants
     memberships: list[AdminMembershipOut]
@@ -32,6 +33,7 @@ class AdminUserUpdate(APIModel):
     full_name: str | None = Field(default=None, min_length=2, max_length=120)
     role: UserRole | None = None
     is_active: bool | None = None
+    is_verified: bool | None = None
     extra_permissions: list[Permission] | None = Field(default=None, max_length=len(Permission))
 
 
@@ -39,3 +41,18 @@ class PermissionInfo(APIModel):
     key: Permission
     grantable: bool
     roles: list[UserRole]  # roles that include it by default
+
+
+class AdminAgencyOut(APIModel):
+    id: uuid.UUID
+    name: str
+    slug: str
+    is_verified: bool
+    is_demo: bool
+    members: int
+    live_listings: int
+    created_at: datetime
+
+
+class AdminAgencyUpdate(APIModel):
+    is_verified: bool

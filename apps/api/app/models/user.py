@@ -21,6 +21,8 @@ class User(UUIDPk, Timestamps, Base):
     locale: Mapped[str] = mapped_column(String(5), default="en", server_default="en")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    # Checked by 2ajar staff (identity / ownership). Shown as a "verified" badge on an owner's listings.
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # Back-office permissions granted on top of the role's defaults (see app/authz/permissions.py).
     extra_permissions: Mapped[list[str]] = mapped_column(JSONB, default=list, server_default="[]")

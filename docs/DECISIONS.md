@@ -131,6 +131,15 @@ the UI says "not enough data yet". Recommendations are explicit rules over those
 steps tick themselves. The business-model section (canvas, revenue streams, calculator) is guidance: pricing
 stays an owner decision (Q1, Q7) and calculator outputs are labelled as assumptions.
 
+## ADR-027 Verified badges, agency pages and a monthly report for publishers
+Brokers are the supply side, so they get three things that make 2ajar worth their time: a **verified badge**
+(agency `organizations.is_verified`, private owner `users.is_verified`, migration 0007), a **public agency page**
+(`/{locale}/agencies/{slug}`) they can share on WhatsApp/Instagram, and a **monthly report** on their dashboard
+(visitors, WhatsApp taps, contact requests, saves per listing over 30 days). Badges are set only by staff after an
+off-platform identity check (Q2); there is no self-serve verification. Stats reuse `listing_events` (distinct
+visitor hashes, so reloads don't inflate numbers). Admin growth terms (Hormozi vocabulary) each have an ⓘ
+explanation in EN/AR so the team can act on the dashboard without the book.
+
 ---
 
 ## Assumptions
@@ -147,7 +156,7 @@ stays an owner decision (Q1, Q7) and calculator outputs are labelled as assumpti
 | # | Question | Default until decided |
 |---|---|---|
 | Q1 | Monetization model (subscription / per-lead / featured) | Free during beta |
-| Q2 | Broker verification requirements | `is_verified` flag set manually by admin |
+| Q2 | Broker verification requirements | Staff set the agency / owner badge in the back office after checking registration, office and phone |
 | Q3 | Free listing cap for individual owners | No cap (soft-limit later) |
 | Q4 | Must broker commission be disclosed? | Optional free-text in description |
 | Q5 | Non-USD pricing | USD only |

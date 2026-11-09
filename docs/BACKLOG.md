@@ -163,8 +163,9 @@ revenue streams and revenue calculator; EN/AR; tests ≥ gates; e2e.
 - B-055 ⬜ Report-listing flow for visitors.
 
 ## M5 — Analytics
-- B-060 ⬜ Per-listing stats (views, WA clicks, leads) in dashboard.
-- B-061 ⬜ Platform funnel metrics for admins.
+- B-060 ✅ Per-listing stats (visitors, WhatsApp taps, contact requests, saves; 30 days) and a monthly-report card on the dashboard.
+- B-062 ✅ Verified badges (agency + owner, staff-set) and public agency pages `/agencies/{slug}`.
+- B-061 ✅ Platform funnel metrics for admins (Growth page, with ⓘ explanations of each term).
 
 ## M6 — Deploy & monetization
 - B-070 ⬜ Railway staging + production provisioning (approval required).

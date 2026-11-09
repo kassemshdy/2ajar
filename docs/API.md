@@ -64,11 +64,20 @@ into `packages/contracts/src/schema.d.ts` (`pnpm contracts:gen`).
                "floor": 4, "furnished": "furnished", "amenities": ["generator_24_7", "parking"]},
   "location": {"slug": "achrafieh", "name_en": "Achrafieh", "name_ar": "الأشرفية", "path": "beirut/beirut-district/achrafieh"},
   "media": [{"id": "uuid", "url": "https://...", "width": 1600, "height": 1200}],
-  "publisher": {"type": "broker|owner", "display_name": "...", "organization_name": "...|null"},
+  "publisher": {"type": "broker|owner", "display_name": "...", "organization_name": "...|null",
+                "verified": true, "agency_slug": "cedar-homes-demo|null"},
   "published_at": "...", "last_confirmed_at": "...", "is_demo": true
 }
 ```
 The publisher's WhatsApp number is **not** included; it is only exposed through the tracked handoff endpoint.
+`verified` is the agency's badge (for agency listings) or the owner's badge (for private owners); both are set by
+staff only. `agency_slug` links to the public agency page.
+
+### Agencies (public)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/agencies/{slug}` | `{name, slug, verified, is_demo, members, on_2ajar_since, listings: ListingPublic[]}` — up to 60 public rentals, newest first. 404 for unknown slugs (and demo agencies outside demo mode). Cached 30 s. |
 
 ## Listings — owner/broker
 
@@ -83,7 +92,7 @@ The publisher's WhatsApp number is **not** included; it is only exposed through 
 | DELETE | `/listings/{id}/media/{media_id}` | |
 | GET | `/listings/import/template` | CSV template (header + example row). |
 | POST | `/listings/import?dry_run=true\|false` | multipart `file` (CSV, UTF-8 or cp1256, ≤ 1 MB, ≤ 200 rows). Rows become drafts. Returns `{dry_run,total,valid,created,rows:[{row,ok,listing_id,title,errors}]}`. |
-| GET | `/me/listings` | Own listings; agency admins get all org listings. |
+| GET | `/me/listings` | Own listings; agency admins get all org listings. Each has `stats: {visitors_30d, whatsapp_30d, leads_30d, saves}` (distinct visitors, WhatsApp taps and contact requests in the last 30 days; total saves) — the publisher's monthly report. |
 | GET | `/me/leads` | Leads for listings the user may manage. Filter `listing_id`. |
 
 All of these return **404** for resources the caller cannot manage.
@@ -142,13 +151,15 @@ elevator backup, winter/summer comfort, highlights, things to know) and, on deta
 |---|---|---|
 | GET | `/admin/users?q=&role=&is_active=&page=` | `users.read` |
 | GET | `/admin/users/{id}` | `users.read` |
-| PATCH | `/admin/users/{id}` `{role?, is_active?, extra_permissions?, full_name?}` | `users.manage` |
+| PATCH | `/admin/users/{id}` `{role?, is_active?, is_verified?, extra_permissions?, full_name?}` (`is_verified` = owner badge) | `users.manage` |
 | GET | `/admin/permissions` | `users.read` |
 | GET | `/admin/tickets?status=&priority=&q=&assignee_id=` | `tickets.read` |
 | PATCH | `/admin/tickets/{id}` `{status?, priority?, category?, assignee_user_id?}` | `tickets.manage` |
 | GET | `/admin/stats` | `analytics.read` |
 | GET | `/admin/growth` → scoreboard metrics and targets, Hormozi value equation per side (factors + index), funnel, supply gaps, wishes vs data coverage, quiet listings, data-driven recommendations, 90-day playbook | `analytics.read` |
 | PUT | `/admin/growth/tasks/{key}` `{done}` (tick a playbook step) | `analytics.read` |
+| GET | `/admin/agencies` → `[{id, name, slug, is_verified, is_demo, members, live_listings, created_at}]`, unverified first | `listings.moderate` |
+| PATCH | `/admin/agencies/{id}` `{is_verified}` (audit logged) | `listings.moderate` |
 | GET | `/admin/areas` | `areas.manage` |
 | PUT | `/admin/areas/{location_id}` `{safety_score?, quiet_score?, theft_reports_12m?, noise_notes_en/ar?, garbage_collection?, flood_risk?, summary_en/ar?, source_note?}` (replaces; audit logged) | `areas.manage` |
 

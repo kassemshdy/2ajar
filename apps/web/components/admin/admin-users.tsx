@@ -116,6 +116,7 @@ function UserEditor({
   const { user: me, can } = useSession();
   const [role, setRole] = useState<UserRole>(user.role);
   const [active, setActive] = useState(user.is_active);
+  const [verified, setVerified] = useState(user.is_verified ?? false);
   const [extra, setExtra] = useState<Permission[]>(user.extra_permissions);
   const [message, setMessage] = useState<{ tone: "success" | "error"; text: string } | null>(null);
   const isSelf = me?.id === user.id;
@@ -126,7 +127,7 @@ function UserEditor({
     try {
       const saved = await api<AdminUser>(`/admin/users/${user.id}`, {
         method: "PATCH",
-        json: { role, is_active: active, extra_permissions: extra },
+        json: { role, is_active: active, is_verified: verified, extra_permissions: extra },
       });
       onSaved(saved);
       setMessage({ tone: "success", text: t("saved") });
@@ -163,6 +164,17 @@ function UserEditor({
             className="size-4"
           />
           {t("active")}
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={verified}
+            onChange={(e) => setVerified(e.target.checked)}
+            disabled={readOnly}
+            className="size-4"
+            data-testid="verified-owner"
+          />
+          {t("verifiedOwner")}
         </label>
       </div>
       <fieldset className="flex flex-col gap-1">

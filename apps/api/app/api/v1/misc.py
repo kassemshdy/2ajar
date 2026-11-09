@@ -6,7 +6,13 @@ from typing import Annotated
 from fastapi import APIRouter, Query, Response
 
 from app.api.deps import PrincipalDep
-from app.api.providers import LeadServiceDep, ListingServiceDep, LocationDirectoryDep, SettingsDep
+from app.api.providers import (
+    AgencyServiceDep,
+    LeadServiceDep,
+    ListingServiceDep,
+    LocationDirectoryDep,
+    SettingsDep,
+)
 from app.schemas.lead import LeadWithListing
 from app.schemas.listing import ListingPrivate, LocationOut
 from app.services.presenters import ListingPresenter
@@ -35,8 +41,12 @@ async def locations(directory: LocationDirectoryDep, response: Response) -> list
 
 
 @router.get("/me/listings", response_model=list[ListingPrivate], tags=["me"])
-async def my_listings(p: PrincipalDep, service: ListingServiceDep) -> list[ListingPrivate]:
-    return [ListingPresenter.to_private(listing, n) for listing, n in await service.list_manageable(p)]
+async def my_listings(
+    p: PrincipalDep, service: ListingServiceDep, agencies: AgencyServiceDep
+) -> list[ListingPrivate]:
+    rows = await service.list_manageable(p)
+    stats = await agencies.listing_stats([listing.id for listing, _ in rows])
+    return [ListingPresenter.to_private(listing, n, stats=stats.get(listing.id)) for listing, n in rows]
 
 
 @router.get("/me/leads", response_model=list[LeadWithListing], tags=["me"])

@@ -9,11 +9,36 @@ import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Alert, Badge, Card } from "../ui/card";
 import { Input } from "../ui/input";
+import { InfoTip, type GlossaryKey } from "../info-tip";
 
 type Tab = "dashboard" | "steps" | "playbook" | "business";
 type Factor = GrowthDashboard["renters"]["factors"][number];
 
 const pct = (x: number | null | undefined) => (x == null ? null : `${Math.round(x * 100)}%`);
+const LEVER_TERM: Record<string, GlossaryKey> = {
+  dream: "dream",
+  likelihood: "likelihood",
+  time: "time",
+  effort: "effort",
+  leads: "leads",
+};
+const CHANNEL_TERM: Record<string, GlossaryKey> = {
+  warm_cold_outreach: "coreFour",
+  warm_outreach: "warm",
+  cold_outreach: "cold",
+  content: "content",
+  paid_ads: "paidAds",
+};
+const STEP_TERM: Record<string, GlossaryKey> = {
+  offer_defined: "grandSlam",
+  warm_list_100: "warm",
+  daily_outreach: "rule100",
+  lead_magnet: "leadMagnet",
+  double_best_channel: "moreBetterNew",
+  paid_ads: "paidAds",
+  daily_content: "content",
+};
+const PHASE_TERM: Record<number, GlossaryKey> = { 1: "dontScale", 2: "coreFour", 3: "moreBetterNew" };
 const usd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
 
 function Bar({ value, tone = "primary" }: { value: number | null | undefined; tone?: "primary" | "warn" }) {
@@ -115,6 +140,7 @@ function Dashboard({ data }: { data: GrowthDashboard }) {
         <div className="flex items-center gap-2 text-primary">
           <Target className="size-5" aria-hidden />
           <h2 className="font-semibold">{t("northStar")}</h2>
+          <InfoTip term="northStar" />
         </div>
         <p className="text-4xl font-bold">{m.weekly_inquiries ?? 0}</p>
         <p className="text-sm text-muted-foreground">{t("northStarHint")}</p>
@@ -142,7 +168,9 @@ function Dashboard({ data }: { data: GrowthDashboard }) {
 
       <section className="flex flex-col gap-3">
         <div>
-          <h2 className="text-lg font-semibold">{t("valueEq")}</h2>
+          <h2 className="flex items-center gap-1 text-lg font-semibold">
+            {t("valueEq")} <InfoTip term="valueEquation" />
+          </h2>
           <p className="font-medium text-primary">{t("valueEqFormula")}</p>
           <p className="text-sm text-muted-foreground">{t("valueEqHint")}</p>
         </div>
@@ -159,7 +187,10 @@ function Dashboard({ data }: { data: GrowthDashboard }) {
               {data[side].factors.map((f: Factor) => (
                 <div key={f.key} className="flex flex-col gap-1">
                   <div className="flex items-baseline justify-between gap-2 text-sm">
-                    <span className="font-medium">{t(`factor.${f.key}`)}</span>
+                    <span className="flex items-center gap-1 font-medium">
+                      {t(`factor.${f.key}`)}
+                      {LEVER_TERM[f.key] ? <InfoTip term={LEVER_TERM[f.key]} /> : null}
+                    </span>
                     <span className="font-semibold">{f.score == null ? t("noData") : f.value}</span>
                   </div>
                   <Bar value={f.score} tone={f.score != null && f.score < 0.5 ? "warn" : "primary"} />
@@ -172,7 +203,9 @@ function Dashboard({ data }: { data: GrowthDashboard }) {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-semibold">{t("funnel")}</h2>
+        <h2 className="flex items-center gap-1 text-lg font-semibold">
+          {t("funnel")} <InfoTip term="funnel" />
+        </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4" data-testid="funnel">
           {(["searches", "visitors", "views", "inquiries"] as const).map((k) => {
             const v = data.funnel[k];
@@ -301,7 +334,9 @@ function Steps({ data, ar }: { data: GrowthDashboard; ar: boolean }) {
               <div className="flex flex-wrap items-center gap-2">
                 <Badge tone={r.priority === 1 ? "warning" : "muted"}>{t("priority", { n: r.priority })}</Badge>
                 <Badge>{t(`lever.${r.lever}`)}</Badge>
+                {LEVER_TERM[r.lever] ? <InfoTip term={LEVER_TERM[r.lever]} /> : null}
                 {r.channel ? <Badge tone="muted">{t(`channel.${r.channel}`)}</Badge> : null}
+                {r.channel && CHANNEL_TERM[r.channel] ? <InfoTip term={CHANNEL_TERM[r.channel]} /> : null}
               </div>
               <h3 className="font-semibold">{t(`rec.${r.key}.t`, p)}</h3>
               <p className="text-sm text-muted-foreground">{t(`rec.${r.key}.d`, p)}</p>
@@ -327,14 +362,18 @@ function Playbook({ data, onChange }: { data: GrowthDashboard; onChange: () => P
   }
   return (
     <div className="flex flex-col gap-4" data-testid="playbook">
-      <p className="text-sm text-muted-foreground">{t("playbookHint")}</p>
+      <p className="flex items-center gap-1 text-sm text-muted-foreground">
+        {t("playbookHint")} <InfoTip term="playbook" />
+      </p>
       {[1, 2, 3].map((phase) => {
         const items = data.playbook.filter((x) => x.phase === phase);
         const done = items.filter((x) => x.done).length;
         return (
           <Card key={phase} className="flex flex-col gap-2 p-4">
             <div className="flex items-center justify-between gap-2">
-              <h2 className="font-semibold">{t(`phase.${phase}`)}</h2>
+              <h2 className="flex items-center gap-1 font-semibold">
+                {t(`phase.${phase}`)} <InfoTip term={PHASE_TERM[phase]} />
+              </h2>
               <span className="text-sm text-muted-foreground">
                 {done} / {items.length}
               </span>
@@ -361,6 +400,7 @@ function Playbook({ data, onChange }: { data: GrowthDashboard; onChange: () => P
                     />
                   )}
                   <span className={cn(x.done && "text-muted-foreground line-through")}>{t(`step.${x.key}`)}</span>
+                  {STEP_TERM[x.key] ? <InfoTip term={STEP_TERM[x.key]} /> : null}
                   {x.auto && x.target != null ? (
                     <span className="ms-auto text-xs text-muted-foreground">
                       {t("auto")} · {t("of", { current: x.current ?? 0, target: x.target })}
@@ -408,7 +448,9 @@ function Business({ metrics, targets }: { metrics: GrowthDashboard["metrics"]; t
     <div className="flex flex-col gap-6" data-testid="business-model">
       <section className="flex flex-col gap-3">
         <div>
-          <h2 className="text-lg font-semibold">{t("canvas")}</h2>
+          <h2 className="flex items-center gap-1 text-lg font-semibold">
+            {t("canvas")} <InfoTip term="canvas" />
+          </h2>
           <p className="text-sm text-muted-foreground">{t("canvasHint")}</p>
         </div>
         <div className="grid gap-2 md:grid-cols-5 md:grid-rows-[auto_auto_auto]" data-testid="canvas">

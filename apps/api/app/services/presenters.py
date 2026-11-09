@@ -15,6 +15,7 @@ from app.schemas.listing import (
     AreaProfileOut,
     ListingPrivate,
     ListingPublic,
+    ListingStats,
     LivingFactorsOut,
     LocalizedText,
     LocationBrief,
@@ -29,13 +30,21 @@ class ListingPresenter:
     @staticmethod
     def publisher(listing: Listing) -> PublisherOut:
         if listing.organization is not None:
-            name = listing.organization.name
-            return PublisherOut(type="broker", display_name=name, organization_name=name)
+            org = listing.organization
+            return PublisherOut(
+                type="broker",
+                display_name=org.name,
+                organization_name=org.name,
+                verified=org.is_verified,
+                agency_slug=org.slug,
+            )
         creator = listing.created_by
         # First name only: individual owners' full names are not public.
         first_name = creator.full_name.split()[0] if creator.full_name.split() else "Owner"
         kind: Literal["broker", "owner"] = "broker" if creator.role == UserRole.broker else "owner"
-        return PublisherOut(type=kind, display_name=first_name, organization_name=None)
+        return PublisherOut(
+            type=kind, display_name=first_name, organization_name=None, verified=creator.is_verified
+        )
 
     @staticmethod
     def living(prop: Any) -> LivingFactorsOut:
@@ -103,7 +112,11 @@ class ListingPresenter:
 
     @classmethod
     def to_private(
-        cls, listing: Listing, lead_count: int = 0, area: AreaProfile | None = None
+        cls,
+        listing: Listing,
+        lead_count: int = 0,
+        area: AreaProfile | None = None,
+        stats: ListingStats | None = None,
     ) -> ListingPrivate:
         return ListingPrivate(
             **cls.to_public(listing, area).model_dump(),
@@ -113,6 +126,7 @@ class ListingPresenter:
             updated_at=listing.updated_at,
             location_id=listing.property.location_id,
             lead_count=lead_count,
+            stats=stats,
         )
 
     @staticmethod

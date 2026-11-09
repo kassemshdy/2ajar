@@ -54,3 +54,6 @@ export type DiscoverOut = S["DiscoverOut"];
 export type NearbyListing = S["NearbyListing"];
 export type Stay = S["Stay"];
 export type GrowthDashboard = S["GrowthOut"];
+export type AgencyPage = S["AgencyPage"];
+export type AdminAgency = S["AdminAgencyOut"];
+export type ListingStats = S["ListingStats"];
