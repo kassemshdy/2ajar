@@ -374,6 +374,49 @@
         "title": "ApiTokenOut",
         "type": "object"
       },
+      "AreaGapOut": {
+        "properties": {
+          "has_area_facts": {
+            "title": "Has Area Facts",
+            "type": "boolean"
+          },
+          "live_listings": {
+            "title": "Live Listings",
+            "type": "integer"
+          },
+          "name_ar": {
+            "title": "Name Ar",
+            "type": "string"
+          },
+          "name_en": {
+            "title": "Name En",
+            "type": "string"
+          },
+          "searches": {
+            "title": "Searches",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "zero_results": {
+            "title": "Zero Results",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "slug",
+          "name_en",
+          "name_ar",
+          "searches",
+          "zero_results",
+          "live_listings",
+          "has_area_facts"
+        ],
+        "title": "AreaGapOut",
+        "type": "object"
+      },
       "AreaProfileIn": {
         "additionalProperties": false,
         "properties": {
@@ -967,6 +1010,24 @@
         "title": "CommentOut",
         "type": "object"
       },
+      "CountOut": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "searches": {
+            "title": "Searches",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "searches"
+        ],
+        "title": "CountOut",
+        "type": "object"
+      },
       "DiscoverOut": {
         "additionalProperties": false,
         "description": "Each row is empty when there is nothing honest to show (e.g. no views yet), and the UI hides it.",
@@ -1045,6 +1106,47 @@
         "title": "ElectricitySupply",
         "type": "string"
       },
+      "FactorOut": {
+        "properties": {
+          "key": {
+            "enum": [
+              "dream",
+              "likelihood",
+              "time",
+              "effort"
+            ],
+            "title": "Key",
+            "type": "string"
+          },
+          "metric": {
+            "title": "Metric",
+            "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "score",
+          "value",
+          "metric"
+        ],
+        "title": "FactorOut",
+        "type": "object"
+      },
       "FavoriteIds": {
         "additionalProperties": false,
         "properties": {
@@ -1071,6 +1173,34 @@
         "title": "FloodRisk",
         "type": "string"
       },
+      "FunnelOut": {
+        "properties": {
+          "inquiries": {
+            "title": "Inquiries",
+            "type": "integer"
+          },
+          "searches": {
+            "title": "Searches",
+            "type": "integer"
+          },
+          "views": {
+            "title": "Views",
+            "type": "integer"
+          },
+          "visitors": {
+            "title": "Visitors",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "searches",
+          "visitors",
+          "views",
+          "inquiries"
+        ],
+        "title": "FunnelOut",
+        "type": "object"
+      },
       "Furnished": {
         "enum": [
           "unfurnished",
@@ -1089,6 +1219,123 @@
         ],
         "title": "GarbageCollection",
         "type": "string"
+      },
+      "GrowthOut": {
+        "properties": {
+          "area_gaps": {
+            "items": {
+              "$ref": "#/components/schemas/AreaGapOut"
+            },
+            "title": "Area Gaps",
+            "type": "array"
+          },
+          "demo_mode": {
+            "title": "Demo Mode",
+            "type": "boolean"
+          },
+          "funnel": {
+            "$ref": "#/components/schemas/FunnelOut"
+          },
+          "generated_at": {
+            "title": "Generated At",
+            "type": "string"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Metrics",
+            "type": "object"
+          },
+          "owners": {
+            "$ref": "#/components/schemas/ValueEquationOut"
+          },
+          "playbook": {
+            "items": {
+              "$ref": "#/components/schemas/PlaybookItemOut"
+            },
+            "title": "Playbook",
+            "type": "array"
+          },
+          "property_types": {
+            "items": {
+              "$ref": "#/components/schemas/CountOut"
+            },
+            "title": "Property Types",
+            "type": "array"
+          },
+          "quiet_listings": {
+            "items": {
+              "$ref": "#/components/schemas/QuietListingOut"
+            },
+            "title": "Quiet Listings",
+            "type": "array"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendationOut"
+            },
+            "title": "Recommendations",
+            "type": "array"
+          },
+          "renters": {
+            "$ref": "#/components/schemas/ValueEquationOut"
+          },
+          "targets": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/TargetOut"
+            },
+            "title": "Targets",
+            "type": "object"
+          },
+          "wishes": {
+            "items": {
+              "$ref": "#/components/schemas/WishOut"
+            },
+            "title": "Wishes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "generated_at",
+          "demo_mode",
+          "metrics",
+          "targets",
+          "renters",
+          "owners",
+          "funnel",
+          "area_gaps",
+          "wishes",
+          "property_types",
+          "quiet_listings",
+          "recommendations",
+          "playbook"
+        ],
+        "title": "GrowthOut",
+        "type": "object"
+      },
+      "GrowthTaskIn": {
+        "properties": {
+          "done": {
+            "title": "Done",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "done"
+        ],
+        "title": "GrowthTaskIn",
+        "type": "object"
       },
       "HTTPValidationError": {
         "properties": {
@@ -2887,6 +3134,82 @@
         "title": "PersonRef",
         "type": "object"
       },
+      "PlaybookItemOut": {
+        "properties": {
+          "auto": {
+            "title": "Auto",
+            "type": "boolean"
+          },
+          "current": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current"
+          },
+          "done": {
+            "title": "Done",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "metric": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric"
+          },
+          "phase": {
+            "title": "Phase",
+            "type": "integer"
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progress"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target"
+          }
+        },
+        "required": [
+          "key",
+          "phase",
+          "metric",
+          "target",
+          "current",
+          "progress",
+          "done",
+          "auto"
+        ],
+        "title": "PlaybookItemOut",
+        "type": "object"
+      },
       "PricePeriod": {
         "description": "2ajar is rentals of any length: from an hour (day-use chalet, pool, hall) to years.",
         "enum": [
@@ -3049,6 +3372,29 @@
         "title": "PublisherOut",
         "type": "object"
       },
+      "QuietListingOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "visitors": {
+            "title": "Visitors",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "visitors"
+        ],
+        "title": "QuietListingOut",
+        "type": "object"
+      },
       "RankedArea": {
         "additionalProperties": false,
         "properties": {
@@ -3109,6 +3455,54 @@
           "source"
         ],
         "title": "ReasonOut",
+        "type": "object"
+      },
+      "RecommendationOut": {
+        "properties": {
+          "channel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Channel"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "lever": {
+            "enum": [
+              "dream",
+              "likelihood",
+              "time",
+              "effort",
+              "leads"
+            ],
+            "title": "Lever",
+            "type": "string"
+          },
+          "params": {
+            "additionalProperties": true,
+            "title": "Params",
+            "type": "object"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "priority",
+          "lever",
+          "channel",
+          "params"
+        ],
+        "title": "RecommendationOut",
         "type": "object"
       },
       "RegisterIn": {
@@ -3259,6 +3653,24 @@
         ],
         "title": "SummerComfort",
         "type": "string"
+      },
+      "TargetOut": {
+        "properties": {
+          "day30": {
+            "title": "Day30",
+            "type": "number"
+          },
+          "day90": {
+            "title": "Day90",
+            "type": "number"
+          }
+        },
+        "required": [
+          "day30",
+          "day90"
+        ],
+        "title": "TargetOut",
+        "type": "object"
       },
       "TicketCategory": {
         "enum": [
@@ -3901,6 +4313,34 @@
         "title": "ValidationError",
         "type": "object"
       },
+      "ValueEquationOut": {
+        "properties": {
+          "factors": {
+            "items": {
+              "$ref": "#/components/schemas/FactorOut"
+            },
+            "title": "Factors",
+            "type": "array"
+          },
+          "index": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index"
+          }
+        },
+        "required": [
+          "index",
+          "factors"
+        ],
+        "title": "ValueEquationOut",
+        "type": "object"
+      },
       "ValueListing": {
         "additionalProperties": false,
         "properties": {
@@ -3969,6 +4409,36 @@
         ],
         "title": "WinterComfort",
         "type": "string"
+      },
+      "WishOut": {
+        "properties": {
+          "data_coverage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Coverage"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "searches": {
+            "title": "Searches",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "searches",
+          "data_coverage"
+        ],
+        "title": "WishOut",
+        "type": "object"
       }
     }
   },
@@ -4051,6 +4521,72 @@
           }
         },
         "summary": "Upsert Area",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/growth": {
+      "get": {
+        "operationId": "growth_api_v1_admin_growth_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrowthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Growth",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/growth/tasks/{key}": {
+      "put": {
+        "operationId": "set_growth_task_api_v1_admin_growth_tasks__key__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "title": "Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrowthTaskIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set Growth Task",
         "tags": [
           "admin"
         ]

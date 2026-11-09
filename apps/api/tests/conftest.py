@@ -35,6 +35,7 @@ BASE_URL = "http://testserver.local"
 PASSWORD = "correct-horse-battery"
 MUTABLE_TABLES = [
     "favorites",
+    "growth_tasks",
     "search_queries",
     "area_profiles",
     "ticket_comments",
