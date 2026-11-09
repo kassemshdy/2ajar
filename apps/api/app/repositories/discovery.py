@@ -172,19 +172,15 @@ class DiscoveryRepository:
         rows = (await self._session.execute(stmt)).unique().all()
         return [AreaRank(profile, int(n)) for profile, n in rows]
 
-    async def busiest_areas(self, limit: int, min_listings: int) -> list[uuid.UUID]:
-        """Locations with the most public listings (at least ``min_listings``), busiest first."""
-        n = func.count(Listing.id)
+    async def counts_by_location(self) -> dict[uuid.UUID, int]:
+        """Number of public listings per location (the location a property is in, not its ancestors)."""
         stmt = (
-            select(Property.location_id)
+            select(Property.location_id, func.count(Listing.id))
             .join(Listing, Listing.property_id == Property.id)
             .where(self._visible())  # type: ignore[arg-type]
             .group_by(Property.location_id)
-            .having(n >= min_listings)
-            .order_by(n.desc(), Property.location_id)
-            .limit(limit)
         )
-        return list((await self._session.scalars(stmt)).all())
+        return {loc: int(n) for loc, n in (await self._session.execute(stmt)).all()}
 
     # ---------- favorites ----------
 

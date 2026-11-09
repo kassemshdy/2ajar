@@ -5,7 +5,7 @@ import { formatDate, formatUsd, listingTitle, localized, locationName } from "./
 describe("format", () => {
   it("formats USD with western digits in both locales", () => {
     expect(formatUsd(1200, "en")).toBe("$1,200");
-    expect(formatUsd(1200, "ar")).toMatch(/1[.,]200/);
+    expect(formatUsd(1200, "ar")).toBe("\u2066$1,200\u2069"); // isolated so RTL text cannot reorder it
   });
 
   it("formats dates and handles empty values", () => {

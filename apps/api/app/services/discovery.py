@@ -13,9 +13,10 @@ from app.authz.policies import Principal
 from app.core.config import Settings
 from app.core.security import utcnow
 from app.models import Favorite, Listing
-from app.models.enums import STAY_PERIODS, ListingEventType, Stay
+from app.models.enums import STAY_PERIODS, ListingEventType, LocationLevel, Stay
 from app.repositories.discovery import DiscoveryRepository, Scored
 from app.repositories.listings import SearchCriteria
+from app.repositories.locations import LocationRecord
 from app.schemas.discovery import AreaRow, DiscoverOut, NearbyListing, RankedArea, ValueListing, ViewedListing
 from app.services.audit import record_event
 from app.services.listings import ListingService
@@ -79,12 +80,43 @@ class DiscoveryService:
         )
 
     async def _area_rows(self) -> list[AreaRow]:
+        """Rows per place, busiest first: neighbourhoods, or their district / city when homes are spread thin.
+
+        A place qualifies with at least AREA_ROW_MIN public homes in it or below it. Rows never overlap: once
+        "Beirut" has a row, "Hamra" (inside it) doesn't get another, and vice versa.
+        """
         snapshot = await self._listings.locations.snapshot()
+        totals: dict[uuid.UUID, int] = {}
+        for location_id, n in (await self._repo.counts_by_location()).items():
+            current = snapshot.by_id.get(location_id)
+            while current is not None:  # a home counts for its area and every place above it
+                totals[current.id] = totals.get(current.id, 0) + n
+                current = snapshot.by_id.get(current.parent_id) if current.parent_id else None
+
+        def eligible(rec: LocationRecord) -> bool:
+            # Governorates are too broad ("Mount Lebanon"), except a city with no districts below it (Beirut).
+            has_district = any(
+                r.parent_id == rec.id and r.level == LocationLevel.district for r in snapshot.records
+            )
+            return rec.level != LocationLevel.governorate or not has_district
+
+        candidates = sorted(
+            (snapshot.by_id[i] for i, n in totals.items() if n >= AREA_ROW_MIN and i in snapshot.by_id),
+            key=lambda r: (-totals[r.id], r.path),
+        )
+        picked: list[LocationRecord] = []
+        for rec in candidates:
+            overlaps = any(
+                rec.path == p.path or rec.path.startswith(p.path + "/") or p.path.startswith(rec.path + "/")
+                for p in picked
+            )
+            if eligible(rec) and not overlaps:
+                picked.append(rec)
+            if len(picked) == AREA_ROWS:
+                break
+
         rows: list[AreaRow] = []
-        for location_id in await self._repo.busiest_areas(AREA_ROWS, AREA_ROW_MIN):
-            loc = snapshot.by_id.get(location_id)
-            if loc is None:
-                continue
+        for loc in picked:
             items, _ = await self._listings.search(SearchCriteria(page_size=ROW_SIZE), loc.slug)
             if not items:
                 continue

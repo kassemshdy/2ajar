@@ -2,13 +2,17 @@ import type { ListingPublic, Location, PricePeriod } from "@2ajar/contracts";
 
 const numberLocale = (locale: string) => (locale === "ar" ? "ar-LB-u-nu-latn" : "en-US");
 
+/**
+ * "$1,500" in every language. Lebanon writes dollar prices this way in Arabic too; "US$ 1.500" (ar-LB) gets
+ * reordered to "$US 1.500" inside right-to-left text. The Unicode LTR isolate keeps "$1,500" intact in Arabic.
+ */
 export function formatUsd(amount: number, locale: string) {
-  return new Intl.NumberFormat(numberLocale(locale), {
+  const text = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    currencyDisplay: "narrowSymbol", // "$950", never "US$ 950" (which reads badly in Arabic)
     maximumFractionDigits: 0,
   }).format(amount);
+  return locale === "ar" ? `\u2066${text}\u2069` : text;
 }
 
 export function formatDate(iso: string | null | undefined, locale: string) {
